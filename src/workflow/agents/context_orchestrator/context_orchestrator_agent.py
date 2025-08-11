@@ -1,15 +1,15 @@
 from src.workflow.services.prompt_service import PromptService
 from langchain_openai import ChatOpenAI
 from src.workflow.state import State
-from src.workflow.agents.routing.routing_agent_models import MainRouterOutput
+from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 
-class RoutingAgent:
+class ContextOrchestrator:
     def __init__(self, prompt_service: PromptService):
         self.__prompt_service = prompt_service
 
     def __get_prompt_template(self, state: State):
         system_message = """
-        You are a legal routing agent. Analyze the user's query to determine what information is needed.
+        You are a legal context orchestrator agent. Analyze the user's query to determine what information is needed.
 
         Set general_law = True if the query requires:
         - Country/jurisdiction laws, statutes, regulations
@@ -38,10 +38,10 @@ class RoutingAgent:
 
         return prompt
 
-    async def interact(self, llm: ChatOpenAI, state: State) -> MainRouterOutput:
+    async def interact(self, llm: ChatOpenAI, state: State) -> ContextOrchestratorOutput:
         prompt = self.__get_prompt_template(state)
         
-        structured_llm = llm.with_structured_output(MainRouterOutput)
+        structured_llm = llm.with_structured_output(ContextOrchestratorOutput)
         
         chain = prompt | structured_llm
         

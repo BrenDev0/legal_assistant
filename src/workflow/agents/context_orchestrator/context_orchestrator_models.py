@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-class MainRouterOutput(BaseModel):
+class ContextOrchestratorOutput(BaseModel):
     general_law: bool = Field(
         False, 
         description="True if the query requires information about the country's general legal system, statutes, or regulations"

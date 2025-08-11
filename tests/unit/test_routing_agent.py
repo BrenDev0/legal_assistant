@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, ANY
-from src.workflow.agents.routing.routing_agent import RoutingAgent
-from src.workflow.agents.routing.routing_agent_models import MainRouterOutput
+from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
+from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 from src.workflow.services.prompt_service import PromptService
 from src.workflow.state import State
 from langchain_openai import ChatOpenAI
@@ -21,7 +21,8 @@ class TestRoutingAgent:
     
     @pytest.fixture
     def routing_agent(self, mock_prompt_service):
-        return RoutingAgent(mock_prompt_service)
+        return ContextOrchestrator(mock_prompt_service)
+
     
     @pytest.fixture
     def sample_state(self):
@@ -42,7 +43,7 @@ class TestRoutingAgent:
         
         # Mock the chain
         mock_chain = Mock()
-        mock_chain.ainvoke = AsyncMock(return_value=MainRouterOutput(
+        mock_chain.ainvoke = AsyncMock(return_value=ContextOrchestratorOutput(
             general_law=True,
             company_law=False,
             chat_history=False
@@ -53,7 +54,7 @@ class TestRoutingAgent:
         result = await routing_agent.interact(llm, sample_state)
         
         # Assertions
-        assert isinstance(result, MainRouterOutput)
+        assert isinstance(result, ContextOrchestratorOutput)
         assert result.general_law == True
         assert result.company_law == False
         assert result.chat_history == False
@@ -63,7 +64,7 @@ class TestRoutingAgent:
             state=sample_state, 
             system_message=ANY
         )
-        llm.with_structured_output.assert_called_once_with(MainRouterOutput)
+        llm.with_structured_output.assert_called_once_with(ContextOrchestratorOutput)
 
     @pytest.mark.asyncio
     async def test_interact_company_law_only(self, routing_agent, mock_llm, mock_prompt_service):
@@ -81,7 +82,7 @@ class TestRoutingAgent:
         mock_prompt_service.custom_prompt_chat_history_template.return_value = mock_prompt
         
         mock_chain = Mock()
-        mock_chain.ainvoke = AsyncMock(return_value=MainRouterOutput(
+        mock_chain.ainvoke = AsyncMock(return_value=ContextOrchestratorOutput(
             general_law=False,
             company_law=True,
             chat_history=False
@@ -112,7 +113,7 @@ class TestRoutingAgent:
         mock_prompt_service.custom_prompt_chat_history_template.return_value = mock_prompt
         
         mock_chain = Mock()
-        mock_chain.ainvoke = AsyncMock(return_value=MainRouterOutput(
+        mock_chain.ainvoke = AsyncMock(return_value=ContextOrchestratorOutput(
             general_law=True,
             company_law=True,
             chat_history=True
@@ -143,7 +144,7 @@ class TestRoutingAgent:
         mock_prompt_service.custom_prompt_chat_history_template.return_value = mock_prompt
         
         mock_chain = Mock()
-        mock_chain.ainvoke = AsyncMock(return_value=MainRouterOutput(
+        mock_chain.ainvoke = AsyncMock(return_value=ContextOrchestratorOutput(
             general_law=False,
             company_law=False,
             chat_history=True

@@ -2,8 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import pytest
 from unittest.mock import Mock, AsyncMock, ANY
-from src.workflow.agents.routing.routing_agent import RoutingAgent
-from src.workflow.agents.routing.routing_agent_models import MainRouterOutput
+from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
+from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 from src.workflow.services.prompt_service import PromptService
 from src.workflow.state import State
 from langchain_openai import ChatOpenAI
@@ -26,7 +26,7 @@ class TestRoutingAgentIntegration:
         embedding_service = Mock(spec=EmbeddingService)
         redis_service = Mock(spec=RedisService)
         prompt_service = PromptService(embedding_service=embedding_service, redis_service=redis_service)
-        return RoutingAgent(prompt_service=prompt_service)
+        return ContextOrchestrator(prompt_service=prompt_service)
     
 
     @pytest.mark.asyncio
