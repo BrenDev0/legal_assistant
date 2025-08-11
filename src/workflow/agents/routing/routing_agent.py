@@ -29,10 +29,10 @@ class RoutingAgent:
         Multiple fields can be True simultaneously.
 
         Examples:
-        - "What are employment laws in Jalisco?" → general_law: True, company_law: False, chat_history: False
-        - "Review our employment contract" → general_law: False, company_law: True, chat_history: False
-        - "Is our privacy policy compliant?" → general_law: True, company_law: True, chat_history: False
-        - "Can you elaborate on what you mentioned earlier?" → general_law: False, company_law: False, chat_history: True
+        - "What are employment laws in Jalisco?" - general_law: True, company_law: False, chat_history: False
+        - "Review our employment contract" - general_law: False, company_law: True, chat_history: False
+        - "Is our privacy policy compliant?" - general_law: True, company_law: True, chat_history: False
+        - "Can you elaborate on what you mentioned earlier?" - general_law: False, company_law: False, chat_history: True
         """
         prompt = self.__prompt_service.custom_prompt_chat_history_template(state=state, system_message=system_message)
 
