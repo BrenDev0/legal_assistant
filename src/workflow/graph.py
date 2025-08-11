@@ -7,6 +7,7 @@ from src.workflow.agents.context_orchestrator.context_orchestrator_agent import 
 def create_graph(llm: ChatOpenAI):
     graph = StateGraph(State)
 
+
     async def context_orchestrator_node(state: State):
         context_orchestrator_agent: ContextOrchestrator = Container.resolve("routing_agent")
         
@@ -15,6 +16,7 @@ def create_graph(llm: ChatOpenAI):
         state["router_response"] = response
         return state
     
+
     graph.add_node("context_orchestrator", context_orchestrator_node)
 
     graph.add_edge(START, "context_orchestrator")

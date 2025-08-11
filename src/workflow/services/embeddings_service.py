@@ -9,14 +9,14 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
+from langchain_core.documents import Document
 import os
-from typing import Optional, List, Dict
 import uuid
 import time
-from langchain_core.documents import Document
+from typing import Optional, List, Dict, Any
 
 class EmbeddingService:
-    def __init__(self, embedding_model=None):
+    def __init__(self, embedding_model: Optional[OpenAIEmbeddings] = None):
         self.client = QdrantClient(
             url=os.getenv("QDRANT_URL"),
             api_key=os.getenv("QDRANT_API_KEY")
@@ -44,15 +44,15 @@ class EmbeddingService:
 
     @staticmethod
     def get_collection_name(user_id: str, agent_id: str) -> str:
-        """Generate standardized collection names."""
         return f"user_{user_id}_agent_{agent_id}"
     
     async def create_collection(self, user_id: str, agent_id: str) -> bool:
         collection_name = self.get_collection_name(user_id, agent_id)
+        
         try:
             self.client.get_collection(collection_name)
-            return False  
-        except:
+            return False  # Collection already exists
+        except Exception:
             self.client.create_collection(
                 collection_name=collection_name,
                 vectors_config=VectorParams(
@@ -62,23 +62,24 @@ class EmbeddingService:
             )
             return True
 
-    async def delete_user_data(self, user_id: str) -> int: 
-        deleted = 0
+    async def delete_user_data(self, user_id: str) -> int:
+        deleted_count = 0
         collections = self.client.get_collections()
         prefix = f"user_{user_id}_agent_"
         
         for collection in collections.collections:
             if collection.name.startswith(prefix):
                 self.client.delete_collection(collection.name)
-                deleted += 1
-        return deleted
+                deleted_count += 1
+                
+        return deleted_count
 
     async def _load_document_from_url(
         self,
         s3_url: str,
         file_type: str,
         filename: str
-    ) -> List[Dict]:
+    ) -> List[Dict[str, Any]]:
         loader_class = self.loader_mapping.get(file_type)
         if not loader_class:
             raise ValueError(f"Unsupported file type: {file_type}")
@@ -103,13 +104,12 @@ class EmbeddingService:
         filename: str,
         user_id: str,
         agent_id: str,
-        custom_metadata: Optional[Dict] = None
-    ) -> Dict:
+        custom_metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         collection_name = self.get_collection_name(user_id, agent_id)
         await self.create_collection(user_id, agent_id)
 
         chunks = await self._load_document_from_url(s3_url, file_type, filename)
-
         texts = [chunk["text"] for chunk in chunks]
         embeddings = await self.embedding_model.aembed_documents(texts)
 
@@ -146,41 +146,79 @@ class EmbeddingService:
             "document_id": str(uuid.uuid4())
         }
 
-    async def search_for_context(
+    async def similarity_search(
         self,
-        input: str,
-        agent_id: str,
-        user_id: str,
-        tok_k: int = 4
-    ) -> List[Document]:
-        collection_name = self.get_collection_name(user_id=user_id, agent_id=agent_id)
-        query_embedding = await self.embedding_model.aembed_query(input)
+        query: str,
+        collection_name: str,
+        limit: int = 4
+    ) -> List[Dict[str, Any]]:
+        query_embedding = await self.embedding_model.aembed_query(query)
 
         search_results = self.client.search(
             collection_name=collection_name,
             query_vector=query_embedding,
-            limit=tok_k,
+            limit=limit,
             with_payload=True
         )
 
-        if not search_results:
-            return None
-
-        docs =  [
-            Document(
-                page_content=item.payload["text"]
-            ) for item in search_results
+        return [
+            {
+                "text": item.payload["text"],
+                "metadata": item.payload.get("metadata", {}),
+                "score": item.score
+            }
+            for item in search_results
         ]
 
-        return  "\n\n".join([doc.page_content for doc in docs])
+    async def search_for_context(
+        self,
+        query: str,
+        agent_id: str,
+        user_id: str,
+        top_k: int = 4
+    ) -> Optional[str]:
+        collection_name = self.get_collection_name(user_id=user_id, agent_id=agent_id)
+        
+        try:
+            results = await self.similarity_search(
+                query=query,
+                collection_name=collection_name,
+                limit=top_k
+            )
+            
+            if not results:
+                return None
+                
+            return "\n\n".join([result["text"] for result in results])
+            
+        except Exception as e:
+            print(f"Error searching for context: {e}")
+            return None
 
-
-    def scroll(self, user_id: str, agent_id: str):
-        results, _ = self.client.scroll(
-            collection_name=f"user_{user_id}_agent_{agent_id}",
-            limit=10,
-            with_payload=True
-        )
-
-        for point in results:
-            print(point.payload)
+    def get_collection_contents(
+        self, 
+        user_id: str, 
+        agent_id: str, 
+        limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        collection_name = self.get_collection_name(user_id, agent_id)
+        
+        try:
+            results, _ = self.client.scroll(
+                collection_name=collection_name,
+                limit=limit,
+                with_payload=True
+            )
+            
+            return [
+                {
+                    "id": point.id,
+                    "text": point.payload.get("text", ""),
+                    "metadata": point.payload.get("metadata", {})
+                }
+                for point in results
+            ]
+            
+        except Exception as e:
+            print(f"Error getting collection contents: {e}")
+            return []
