@@ -11,6 +11,6 @@ class ContextOrchestratorOutput(BaseModel):
     )
     chat_history: bool = Field(
         False,
-        desccription="True if the query requires information found in the chats history"
+        description="True if the query requires information found in the chats history"
     )
  
