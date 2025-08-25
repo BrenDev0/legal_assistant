@@ -11,12 +11,16 @@ class PromptService:
         self.redis_service = redis_service
 
 
-    def custom_prompt_chat_history_template(self, state: State, system_message: str):
+    async def custom_prompt_template(self, state: State, system_message: str, with_chat_history: bool = False, with_context: bool = False, context_collection: str = None):
         messages = [
             SystemMessage(content=system_message)
         ]
 
-        messages = self.add_chat_history(state, messages)
+        if with_chat_history:
+            messages = self.add_chat_history(state, messages)
+
+        if with_context & context_collection != None:
+            messages = await self.add_context(input=state["input"], messages=messages, collection_name=context_collection)
 
         messages.append(HumanMessagePromptTemplate.from_template('{input}'))
 
@@ -25,11 +29,10 @@ class PromptService:
         return prompt
 
 
-    async def add_context(self, state: State, messages: List[Dict[str, Any]]) -> List[Any]:
+    async def add_context(self, input: str, messages: List[Dict[str, Any]], collection_name: str) -> List[Any]:
         context = await self.embedding_service.search_for_context(
-            input=state["input"],
-            agent_id=state["agent_id"],
-            user_id=state["user_id"]
+            query=input,
+            collection_name=collection_name
         )
  
         if context:
@@ -49,9 +52,9 @@ class PromptService:
         chat_history = state.get("chat_history", [])
         if chat_history:
             for msg in chat_history:
-                if msg["sender"] == "human":
+                if msg["type"] == "human":
                     messages.append(HumanMessage(content=msg["text"]))
-                elif msg["sender"] == "ai":
+                elif msg["type"] == "ai":
                     messages.append(AIMessage(content=msg["text"]))
 
         return messages

@@ -173,12 +173,9 @@ class EmbeddingService:
     async def search_for_context(
         self,
         query: str,
-        agent_id: str,
-        user_id: str,
+        collection_name: str,
         top_k: int = 4
     ) -> Optional[str]:
-        collection_name = self.get_collection_name(user_id=user_id, agent_id=agent_id)
-        
         try:
             results = await self.similarity_search(
                 query=query,

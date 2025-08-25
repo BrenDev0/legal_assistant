@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from src.dependencies.configure_container import configure_container
+from src.api.modules.interactions import interactions_routes
 
 
 @asynccontextmanager
@@ -19,3 +20,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(interactions_routes.router)

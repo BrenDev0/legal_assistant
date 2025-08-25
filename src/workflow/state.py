@@ -8,4 +8,5 @@ class State(TypedDict):
     chat_history: List[Dict[str, Any]]
     input: str
     context_orchestrator_response: ContextOrchestratorOutput
+    general_legal_response: str
     final_response: str

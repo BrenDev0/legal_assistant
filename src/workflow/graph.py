@@ -5,6 +5,7 @@ from src.dependencies.container import Container
 from langgraph.graph import StateGraph, END, START
 from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
 
 def create_graph():
     graph = StateGraph(State)
@@ -39,7 +40,11 @@ def create_graph():
     
 
     async def general_legal_research_node(state: State):
-        pass
+        general_legal_researcher: GeneralLegalResearcher = Container.resolve("general_legal_researcher")
+
+        response = general_legal_researcher.interact(state=state)
+
+        state["general_legal_response"] = response
 
 
     async def company_legal_research_node(state: State):
