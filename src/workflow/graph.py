@@ -6,14 +6,14 @@ from langgraph.graph import StateGraph, END, START
 from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 
-def create_graph(llm: ChatOpenAI):
+def create_graph():
     graph = StateGraph(State)
 
 
     async def context_orchestrator_node(state: State):
         context_orchestrator_agent: ContextOrchestrator = Container.resolve("context_orchestrator_agent")
         
-        response =  await context_orchestrator_agent.interact(llm=llm, state=state)
+        response =  await context_orchestrator_agent.interact(state=state)
 
         state["context_orchestrator_response"] = response
         return state

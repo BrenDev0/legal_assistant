@@ -1,7 +1,11 @@
 from typing_extensions import TypedDict
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from  uuid import UUID
+from typing import Dict, List, Any
 
 class State(TypedDict):
+    chat_id: UUID
+    chat_history: List[Dict[str, Any]]
     input: str
     context_orchestrator_response: ContextOrchestratorOutput
     final_response: str

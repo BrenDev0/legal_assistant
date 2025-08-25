@@ -2,10 +2,12 @@ from src.workflow.services.prompt_service import PromptService
 from langchain_openai import ChatOpenAI
 from src.workflow.state import State
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.services.llm_service import LlmService
 
 class ContextOrchestrator:
-    def __init__(self, prompt_service: PromptService):
+    def __init__(self, prompt_service: PromptService, llm_service: LlmService):
         self.__prompt_service = prompt_service
+        self.__llm_service = llm_service
 
     def __get_prompt_template(self, state: State):
         system_message = """
@@ -38,7 +40,9 @@ class ContextOrchestrator:
 
         return prompt
 
-    async def interact(self, llm: ChatOpenAI, state: State) -> ContextOrchestratorOutput:
+    async def interact(self, state: State) -> ContextOrchestratorOutput:
+        llm = self.__llm_service.get_llm(temperature=0.5)
+        
         prompt = self.__get_prompt_template(state)
         
         structured_llm = llm.with_structured_output(ContextOrchestratorOutput)
