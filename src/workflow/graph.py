@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, END, START
 from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
+from src.workflow.agents.company_legal_research.company_legal_research_agent import CompanyLegalResearcher
 
 def create_graph():
     graph = StateGraph(State)
@@ -42,13 +43,17 @@ def create_graph():
     async def general_legal_research_node(state: State):
         general_legal_researcher: GeneralLegalResearcher = Container.resolve("general_legal_researcher")
 
-        response = general_legal_researcher.interact(state=state)
+        response = await general_legal_researcher.interact(state=state)
 
         state["general_legal_response"] = response
 
 
     async def company_legal_research_node(state: State):
-        pass
+        company_legal_researcher: CompanyLegalResearcher = Container.resolve("company_legal_researcher")
+
+        response = await company_legal_researcher.interact(state=state)
+
+        state["company_legal_response"] = response
     
 
     async def chat_history_node(state: State):
@@ -58,8 +63,6 @@ def create_graph():
     async def aggregator_node(state: State):
         pass
 
-    async def reflection_node(state: State): 
-        pass
 
 
     graph.add_node("context_orchestrator", context_orchestrator_node)
@@ -67,7 +70,7 @@ def create_graph():
     graph.add_node("company_legal_research", company_legal_research_node)
     graph.add_node("chat_history", chat_history_node)
     graph.add_node("aggregator", aggregator_node)
-    graph.add_node("reflection", reflection_node)
+    
 
 
 
@@ -87,8 +90,7 @@ def create_graph():
     graph.add_edge("general_legal_research", "aggregator")
     graph.add_edge("company_legal_research", "aggregator")
     graph.add_edge("chat_history", "aggregator")
-    graph.add_edge("aggregator", "reflection")
-    graph.add_edge("reflection", END)
+    graph.add_edge("aggregator", END)
 
 
     return graph.compile()
