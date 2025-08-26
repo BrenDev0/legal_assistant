@@ -30,7 +30,7 @@ class CompanyLegalResearcher:
         return prompt
 
     async def interact(self, state: State):
-        llm = self.__llm_service.get_llm(temperature=0.5, max_token=2000)
+        llm = self.__llm_service.get_llm(temperature=0.1, max_tokens=2000)
         
         prompt = await self.__get_prompt_template(state)
         

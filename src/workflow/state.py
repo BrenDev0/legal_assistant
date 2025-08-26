@@ -4,7 +4,6 @@ from  uuid import UUID
 from typing import Dict, List, Any
 
 class State(TypedDict):
-    chat_id: UUID
     company_id: UUID
     chat_history: List[Dict[str, Any]]
     input: str

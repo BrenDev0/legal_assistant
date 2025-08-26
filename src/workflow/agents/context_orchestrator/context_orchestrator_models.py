@@ -9,8 +9,4 @@ class ContextOrchestratorOutput(BaseModel):
         False, 
         description="True if the query requires information about the company's specific legal documents, policies, or internal legal matters"
     )
-    chat_history: bool = Field(
-        False,
-        description="True if the query requires information found in the chats history"
-    )
  

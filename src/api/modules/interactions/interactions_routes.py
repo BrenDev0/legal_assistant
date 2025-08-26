@@ -13,11 +13,13 @@ router = APIRouter(
 
 async def get_state(data: ChatState = Body(...)):
     state = State(
-        chat_id=data.chat_id,
+        company_id=data.company_id,
         chat_history=data.chat_history,
         input=data.input,
         context_orchestrator_response=None,
-        final_response=None
+        general_legal_response="",
+        company_legal_response="",
+        final_response=""
     )
 
     return state

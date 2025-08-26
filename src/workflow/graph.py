@@ -7,6 +7,8 @@ from src.workflow.agents.context_orchestrator.context_orchestrator_agent import 
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
 from src.workflow.agents.company_legal_research.company_legal_research_agent import CompanyLegalResearcher
+from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
+
 
 def create_graph():
     graph = StateGraph(State)
@@ -17,8 +19,7 @@ def create_graph():
         
         response =  await context_orchestrator_agent.interact(state=state)
 
-        state["context_orchestrator_response"] = response
-        return state
+        return {"context_orchestrator_response": response}
     
 
     def orchestrate_research(state: State) -> List[str]:
@@ -30,9 +31,6 @@ def create_graph():
 
         if orchestrator_response.company_law:
             next_nodes.append("company_legal_research")
-
-        if orchestrator_response.chat_history:
-            next_nodes.append("chat_history")
         
         if not next_nodes:
             next_nodes.append("aggregator")
@@ -45,7 +43,7 @@ def create_graph():
 
         response = await general_legal_researcher.interact(state=state)
 
-        state["general_legal_response"] = response
+        return {"general_legal_response": response}
 
 
     async def company_legal_research_node(state: State):
@@ -53,22 +51,22 @@ def create_graph():
 
         response = await company_legal_researcher.interact(state=state)
 
-        state["company_legal_response"] = response
+
+        return {"company_legal_response": response}
     
 
-    async def chat_history_node(state: State):
-        pass
-
-
     async def aggregator_node(state: State):
-        pass
+        research_aggregator: ResearchAggregator = Container.resolve("research_aggregator")
+
+        response = await research_aggregator.interact(state=state)
+
+        return {"final_response": response}
 
 
 
     graph.add_node("context_orchestrator", context_orchestrator_node)
     graph.add_node("general_legal_research", general_legal_research_node)
     graph.add_node("company_legal_research", company_legal_research_node)
-    graph.add_node("chat_history", chat_history_node)
     graph.add_node("aggregator", aggregator_node)
     
 
@@ -82,14 +80,12 @@ def create_graph():
         [
             "general_legal_research",
             "company_legal_research",
-            "chat_history",
             "aggregator"
         ]
     )
 
     graph.add_edge("general_legal_research", "aggregator")
     graph.add_edge("company_legal_research", "aggregator")
-    graph.add_edge("chat_history", "aggregator")
     graph.add_edge("aggregator", END)
 
 

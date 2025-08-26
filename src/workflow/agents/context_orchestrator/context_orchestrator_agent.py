@@ -26,18 +26,12 @@ class ContextOrchestrator:
         - Internal legal matters
         - Company compliance status
 
-        Set chat_history = True if the query requires:
-        - Reference to previous conversations
-        - Follow-up questions about earlier topics
-        - Context from past interactions
-
         Multiple fields can be True simultaneously.
 
         Examples:
         - "What are employment laws in Jalisco?" - general_law: True, company_law: False, chat_history: False
         - "Review our employment contract" - general_law: False, company_law: True, chat_history: False
         - "Is our privacy policy compliant?" - general_law: True, company_law: True, chat_history: False
-        - "Can you elaborate on what you mentioned earlier?" - general_law: False, company_law: False, chat_history: True
         """
         prompt = await self.__prompt_service.custom_prompt_template(state=state, system_message=system_message, with_chat_history=True)
 
@@ -45,7 +39,7 @@ class ContextOrchestrator:
 
     @error_handler(module=__MODULE)
     async def interact(self, state: State) -> ContextOrchestratorOutput:
-        llm = self.__llm_service.get_llm(temperature=0.5)
+        llm = self.__llm_service.get_llm(temperature=0.1)
         
         prompt = await self.__get_prompt_template(state)
         

@@ -7,6 +7,6 @@ class InteractionsController:
         state: State,
         graph,
     ) -> State:
-        final_state = await graph.ainivoke(state)
+        final_state = await graph.ainvoke(state)
 
         return final_state
