@@ -2,12 +2,14 @@ from src.workflow.services.prompt_service import PromptService
 from src.workflow.services.llm_service import LlmService
 from src.utils.decorators.error_hanlder import error_handler
 from src.workflow.state import State
+from src.api.modules.websocket.websockets_service import WebsocketService
 
 class ResearchAggregator: 
     __MODULE = "research_aggregator.agent"
-    def __init__(self, prompt_service: PromptService, llm_service: LlmService):
+    def __init__(self, prompt_service: PromptService, llm_service: LlmService, websockets_service: WebsocketService):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
+        self.__websockets_service = websockets_service
 
     @error_handler(module=__MODULE)
     async def __get_prompt_template(self, state: State):  
@@ -63,6 +65,6 @@ class ResearchAggregator:
         
         chain = prompt | llm
         
-        response = await chain.ainvoke({"input": state["input"]})
+        response = await chain.astream({"input": state["input"]})
 
         return response.content.strip()
