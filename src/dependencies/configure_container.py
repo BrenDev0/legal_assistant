@@ -7,7 +7,6 @@ from src.workflow.agents.general_legal_research.general_legal_agent import Gener
 from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
 from src.workflow.agents.company_legal_research.company_legal_research_agent import CompanyLegalResearcher
 from src.workflow.services.llm_service import LlmService
-from src.api.modules.websocket.websockets_service import WebsocketService
 from src.api.modules.interactions.interactions_dependencies import configure_interactions_dependencies
 
 def configure_container():
@@ -21,9 +20,6 @@ def configure_container():
   redis_service = RedisService()
   Container.register("redis_service", redis_service)
 
-  websockets_service = WebsocketService()
-  Container.register("websockets_service", websockets_service)
- 
   
   
   ## Dependent # All independent instances must be configured above this line ##
@@ -54,8 +50,7 @@ def configure_container():
 
   research_aggregator = ResearchAggregator(
     prompt_service=prompt_service,
-    llm_service=llm_service,
-    websockets_service=websockets_service
+    llm_service=llm_service
   )
   Container.register("research_aggregator", research_aggregator)
 
