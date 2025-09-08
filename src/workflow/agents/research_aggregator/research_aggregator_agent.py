@@ -28,13 +28,6 @@ class ResearchAggregator:
         system_message = f"""
         You are a Legal Research Aggregator. Synthesize research from multiple sources into a comprehensive response for the user's legal query.
 
-        ## Response Structure:
-        **Legal Overview:** Brief summary addressing the question
-        **Applicable Law:** Mexican legal provisions (if available)
-        **Company Policy:** Internal requirements (if available)
-        **Previous Discussion:** Chat history context (if relevant)
-        **Recommendations:** Practical next steps
-
         ## Guidelines:
         - Combine all available research sources
         - Distinguish between general law and company-specific requirements
