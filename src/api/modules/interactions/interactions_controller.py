@@ -1,5 +1,6 @@
 from  fastapi import Request, BackgroundTasks
 from src.workflow.state import State
+from src.api.modules.interactions.interactions_models import InteractionResponse
 
 class InteractionsController: 
     async def interact(
@@ -7,7 +8,9 @@ class InteractionsController:
         req: Request,
         state: State,
         graph,
-    ) -> State:
-        final_state = await graph.ainvoke(state)
+    ) -> InteractionResponse:
+        final_state: State = await graph.ainvoke(state)
 
-        return final_state
+        return InteractionResponse(
+            response=final_state["final_response"]
+        )

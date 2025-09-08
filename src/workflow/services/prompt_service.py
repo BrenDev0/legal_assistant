@@ -19,7 +19,7 @@ class PromptService:
         if with_chat_history:
             messages = self.add_chat_history(state, messages)
 
-        if with_context & context_collection != None:
+        if with_context and context_collection != None:
             messages = await self.add_context(input=state["input"], messages=messages, collection_name=context_collection)
 
         messages.append(HumanMessagePromptTemplate.from_template('{input}'))

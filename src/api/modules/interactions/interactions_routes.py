@@ -1,5 +1,5 @@
 from  fastapi import APIRouter, Body, Request, Depends
-from  src.api.modules.interactions.interactions_models import InteractionRequest
+from  src.api.modules.interactions.interactions_models import InteractionRequest, InteractionResponse
 from src.api.core.middleware.hmac_verification import verify_hmac
 from src.workflow.state import State
 from src.workflow.graph import create_graph
@@ -31,7 +31,7 @@ def get_controller() -> InteractionsController:
     controller = Container.resolve("interactions_controller")
     return controller
 
-@router.post("/internal/interact", status_code=200, response_model=State)
+@router.post("/internal/interact", status_code=200, response_model=InteractionResponse)
 async def secure_interact(
     req: Request,
     _: None = Depends(verify_hmac),

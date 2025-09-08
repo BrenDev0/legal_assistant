@@ -2,6 +2,7 @@ from src.workflow.services.prompt_service import PromptService
 from src.workflow.services.llm_service import LlmService
 from src.workflow.state import State
 from src.utils.decorators.error_hanlder import error_handler
+import os
 
 
 class GeneralLegalResearcher:
@@ -20,12 +21,6 @@ class GeneralLegalResearcher:
         - Provide structured legal analysis with proper citations
         - Focus on current, applicable Mexican law
 
-        ## Response Format:
-        **Legal Framework:** Constitutional/statutory basis
-        **Relevant Provisions:** Specific articles and laws  
-        **Jurisprudence:** Court decisions (if applicable)
-        **Citations:** Proper Mexican legal format
-
         ## Guidelines:
         - Use provided context documents as primary source
         - Include specific article numbers and legal references
@@ -39,7 +34,7 @@ class GeneralLegalResearcher:
             state=state,
             system_message=system_message,
             with_context=True,
-            context_collection="general_legal"
+            context_collection=os.getenv("LEGAL_COLLECTION")
         )
 
         return prompt

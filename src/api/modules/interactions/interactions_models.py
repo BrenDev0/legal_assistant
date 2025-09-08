@@ -9,3 +9,6 @@ class InteractionRequest(BaseModel):
     company_id: UUID
     chat_history: List[Dict[str, Any]]
     user_id: UUID
+
+class  InteractionResponse(BaseModel):
+    response: str
