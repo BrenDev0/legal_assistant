@@ -52,9 +52,9 @@ class PromptService:
         chat_history = state.get("chat_history", [])
         if chat_history:
             for msg in chat_history:
-                if msg["type"] == "human":
+                if msg["message_type"] == "human":
                     messages.append(HumanMessage(content=msg["text"]))
-                elif msg["type"] == "ai":
+                elif msg["message_type"] == "ai":
                     messages.append(AIMessage(content=msg["text"]))
 
         return messages
