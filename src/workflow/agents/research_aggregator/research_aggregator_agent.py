@@ -19,12 +19,9 @@ class ResearchAggregator:
         if state.get('company_legal_response'):
             context_parts.append(f"COMPANY LEGAL RESEARCH:\n{state['company_legal_response']}")
         
-        if state.get('chat_history_response'):
-            context_parts.append(f"CHAT HISTORY CONTEXT:\n{state['chat_history_response']}")
-
         # Join all available context
         combined_context = "\n\n".join(context_parts) if context_parts else "No additional research context available."
-
+        
         system_message = f"""
         You are a Legal Research Aggregator. Synthesize research from multiple sources into a comprehensive response for the user's legal query.
 
@@ -50,6 +47,17 @@ class ResearchAggregator:
 
     @error_handler(module=__MODULE)
     async def interact(self, state: State) -> str:
+        # Do not call agent unless  multiple context needs to  be combined
+        general = state.get("general_legal_response", None)
+        company = state.get("company_legal_response", None)
+        
+        if general and not company:
+            return general.strip()
+        if company and not general:
+            return company.strip()
+        
+
+        # Call agent to compose a reposnse  based on the context
         llm = self.__llm_service.get_llm(temperature=0.5, max_tokens=350)
         
         prompt = await self.__get_prompt_template(state)
