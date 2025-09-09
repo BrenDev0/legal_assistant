@@ -41,7 +41,7 @@ class GeneralLegalResearcher:
 
     @error_handler(module=__MODULE)
     async def interact(self, state: State) -> str:
-        llm = self.__llm_service.get_llm(temperature=0.1, max_tokens=2500)
+        llm = self.__llm_service.get_llm(temperature=0.1, max_tokens=1500)
         
         prompt = await self.__get_prompt_template(state)
         
