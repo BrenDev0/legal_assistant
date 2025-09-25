@@ -1,13 +1,19 @@
-from langchain_openai import ChatOpenAI
 from typing import List
-from src.workflow.state import State
-from src.dependencies.container import Container
+import os
 from langgraph.graph import StateGraph, END, START
+import httpx
+
+from src.dependencies.container import Container
+
+
+from src.workflow.state import State
 from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
 from src.workflow.agents.company_legal_research.company_legal_research_agent import CompanyLegalResearcher
 from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
+
+from src.utils.http.get_hmac_header import generate_hmac_headers
 
 
 def create_graph():
@@ -61,6 +67,25 @@ def create_graph():
         response = await research_aggregator.interact(state=state)
 
         return {"final_response": response}
+    
+    async def hanlde_response_node(state: State):
+        hmac_headers = generate_hmac_headers(os.getenv("HMAC_SECRET"))
+        main_server = os.getenv("MAIN_SERVER_ENDPOINT")
+        req_body = {
+            "sender": os.getenv("AGENT_ID"),
+            "messageType": "ai",
+            "text": state["final_response"]
+        }
+        
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"{main_server}/messsages/internal/{state['chat_id']}",
+                headers=hmac_headers,
+                json=req_body
+            )
+
+            return state
+            
 
 
 
@@ -68,6 +93,7 @@ def create_graph():
     graph.add_node("general_legal_research", general_legal_research_node)
     graph.add_node("company_legal_research", company_legal_research_node)
     graph.add_node("aggregator", aggregator_node)
+    graph.add_node("hanlde_responsse", hanlde_response_node)
     
 
 
@@ -86,7 +112,8 @@ def create_graph():
 
     graph.add_edge("general_legal_research", "aggregator")
     graph.add_edge("company_legal_research", "aggregator")
-    graph.add_edge("aggregator", END)
+    graph.add_edge("aggregator", "handle_resposne")
+    graph.add_edge("handle_reposne", END)
 
 
     return graph.compile()

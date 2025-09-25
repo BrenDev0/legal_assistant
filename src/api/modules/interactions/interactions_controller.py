@@ -1,16 +1,22 @@
-from  fastapi import Request, BackgroundTasks
+from  fastapi import Request
+import asyncio
 from src.workflow.state import State
-from src.api.modules.interactions.interactions_models import InteractionResponse
+
+from src.api.core.models.http_responses import CommonHttpResponse
 
 class InteractionsController: 
     async def interact(
-        backgound_tasks: BackgroundTasks,
+        self,
         req: Request,
         state: State,
         graph,
-    ) -> InteractionResponse:
-        final_state: State = await graph.ainvoke(state)
-
-        return InteractionResponse(
-            response=final_state["final_response"]
+    ) -> CommonHttpResponse:
+        
+        final_state: State = asyncio.create_task(
+            graph.ainvike(state)
         )
+
+        return CommonHttpResponse(
+            detail="Request received"
+        )
+  
