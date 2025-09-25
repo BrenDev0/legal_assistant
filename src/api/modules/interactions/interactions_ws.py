@@ -5,7 +5,9 @@ from src.dependencies.container import Container
 from src.api.modules.websocket.websocket_service import WebsocketService
 
 
-router = APIRouter()
+router = APIRouter(
+    tags=["WebSocket"]
+)
 
 
 @router.websocket("/ws/internal/interact/{chat_id}")
