@@ -5,7 +5,7 @@ from src.api.core.middleware.hmac_verification import verify_hmac
 from src.workflow.state import State
 from src.workflow.graph import create_graph
 from src.api.modules.interactions.interactions_controller import InteractionsController
-from src.dependencies.container import Container
+from src.api.modules.interactions.interactions_dependencies import get_interactions_controller
 
 router = APIRouter(
     prefix="/interactions",
@@ -26,20 +26,13 @@ async def get_state(data: InteractionRequest = Body(...)):
 
     return state
 
-def get_graph():
-    return create_graph()
-
-def get_controller() -> InteractionsController:
-    controller = Container.resolve("interactions_controller")
-    return controller
-
 @router.post("/internal/interact", status_code=200, response_model=CommonHttpResponse)
 async def secure_interact(
     req: Request,
     _: None = Depends(verify_hmac),
     state: State = Depends(get_state),
-    graph = Depends(get_graph),
-    controller: InteractionsController = Depends(get_controller)
+    graph = Depends(create_graph),
+    controller: InteractionsController = Depends(get_interactions_controller)
 ):
     return await controller.interact(
         req=req,

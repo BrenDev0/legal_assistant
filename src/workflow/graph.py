@@ -1,28 +1,33 @@
+from fastapi import Depends
 from typing import List
 import os
 from langgraph.graph import StateGraph, END, START
 import httpx
 
-from src.dependencies.container import Container
-
-
 from src.workflow.state import State
 from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
+from src.workflow.agents.context_orchestrator.context_orchestrator_dependencies import get_context_orchestrator
 from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
 from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
+from src.workflow.agents.general_legal_research.general_legal_dependencies import get_general_legal_agent
 from src.workflow.agents.company_legal_research.company_legal_research_agent import CompanyLegalResearcher
+from src.workflow.agents.company_legal_research.company_legal_research_dependencies import get_company_legal_agent
 from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
+from src.workflow.agents.research_aggregator.research_aggregator_dependencies import get_research_aggregator
 
 from src.utils.http.get_hmac_header import generate_hmac_headers
 
 
-def create_graph():
+def create_graph(
+    context_orchestrator_agent: ContextOrchestrator = Depends(get_context_orchestrator),
+    general_legal_researcher: GeneralLegalResearcher = Depends(get_general_legal_agent),
+    company_legal_researcher: CompanyLegalResearcher = Depends(get_company_legal_agent),
+    research_aggregator: ResearchAggregator = Depends(get_research_aggregator)
+):
     graph = StateGraph(State)
 
 
-    async def context_orchestrator_node(state: State):
-        context_orchestrator_agent: ContextOrchestrator = Container.resolve("context_orchestrator_agent")
-        
+    async def context_orchestrator_node(state: State):       
         response =  await context_orchestrator_agent.interact(state=state)
 
         return {"context_orchestrator_response": response}
@@ -45,16 +50,12 @@ def create_graph():
     
 
     async def general_legal_research_node(state: State):
-        general_legal_researcher: GeneralLegalResearcher = Container.resolve("general_legal_researcher")
-
         response = await general_legal_researcher.interact(state=state)
 
         return {"general_legal_response": response}
 
 
     async def company_legal_research_node(state: State):
-        company_legal_researcher: CompanyLegalResearcher = Container.resolve("company_legal_researcher")
-
         response = await company_legal_researcher.interact(state=state)
 
 
@@ -62,8 +63,6 @@ def create_graph():
     
 
     async def aggregator_node(state: State):
-        research_aggregator: ResearchAggregator = Container.resolve("research_aggregator")
-
         response = await research_aggregator.interact(state=state)
 
         return {"final_response": response}

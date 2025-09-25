@@ -2,7 +2,5 @@ from src.api.modules.interactions.interactions_controller import InteractionsCon
 from src.dependencies.container import Container
 
 
-def configure_interactions_dependencies():
-    controller = InteractionsController()
-
-    Container.register("interactions_controller", controller)
+def get_interactions_controller():
+    return InteractionsController()
