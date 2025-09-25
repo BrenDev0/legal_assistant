@@ -87,17 +87,12 @@ def create_graph():
             return state
             
 
-
-
     graph.add_node("context_orchestrator", context_orchestrator_node)
     graph.add_node("general_legal_research", general_legal_research_node)
     graph.add_node("company_legal_research", company_legal_research_node)
     graph.add_node("aggregator", aggregator_node)
     graph.add_node("handle_response", hanlde_response_node)
     
-
-
-
     graph.add_edge(START, "context_orchestrator")
     
     graph.add_conditional_edges(

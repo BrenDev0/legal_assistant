@@ -13,7 +13,7 @@ class InteractionsController:
     ) -> CommonHttpResponse:
         
         final_state: State = asyncio.create_task(
-            graph.ainvike(state)
+            graph.ainvoke(state)
         )
 
         return CommonHttpResponse(
