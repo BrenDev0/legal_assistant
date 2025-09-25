@@ -73,7 +73,7 @@ def create_graph():
         main_server = os.getenv("MAIN_SERVER_ENDPOINT")
         req_body = {
             "sender": os.getenv("AGENT_ID"),
-            "messageType": "ai",
+            "message_type": "ai",
             "text": state["final_response"]
         }
         
