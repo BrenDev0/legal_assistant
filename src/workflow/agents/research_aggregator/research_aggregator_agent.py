@@ -86,4 +86,4 @@ class ResearchAggregator:
             raise
 
         finally:
-            return " ".join(chunks)
+            return "".join(chunks)

@@ -78,7 +78,7 @@ class GeneralLegalResearcher:
                 raise
 
             finally:
-                return " ".join(chunks)
+                return "".join(chunks)
                 
         response = await chain.ainvoke({"input": state["input"]})
 
