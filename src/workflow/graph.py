@@ -93,7 +93,7 @@ def create_graph():
     graph.add_node("general_legal_research", general_legal_research_node)
     graph.add_node("company_legal_research", company_legal_research_node)
     graph.add_node("aggregator", aggregator_node)
-    graph.add_node("hanlde_responsse", hanlde_response_node)
+    graph.add_node("handle_response", hanlde_response_node)
     
 
 
@@ -112,8 +112,8 @@ def create_graph():
 
     graph.add_edge("general_legal_research", "aggregator")
     graph.add_edge("company_legal_research", "aggregator")
-    graph.add_edge("aggregator", "handle_resposne")
-    graph.add_edge("handle_resposne", END)
+    graph.add_edge("aggregator", "handle_response")
+    graph.add_edge("handle_response", END)
 
 
     return graph.compile()
