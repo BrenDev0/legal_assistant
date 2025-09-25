@@ -79,7 +79,7 @@ def create_graph():
         
         async with httpx.AsyncClient() as client:
             await client.post(
-                f"{main_server}/messsages/internal/{state['chat_id']}",
+                f"{main_server}/messages/internal/{state['chat_id']}",
                 headers=hmac_headers,
                 json=req_body
             )
