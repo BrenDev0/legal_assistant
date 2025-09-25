@@ -15,6 +15,7 @@ async def get_state(data: InteractionRequest = Body(...)):
     state = State(
         company_id=data.company_id,
         chat_history=data.chat_history,
+        chat_id=data.chat_id,
         input=data.input,
         context_orchestrator_response=None,
         general_legal_response="",
