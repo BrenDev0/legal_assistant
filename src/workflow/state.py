@@ -11,3 +11,4 @@ class State(TypedDict):
     general_legal_response: str
     company_legal_response: str
     final_response: str
+    chat_id: UUID

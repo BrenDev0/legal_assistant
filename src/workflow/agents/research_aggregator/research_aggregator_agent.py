@@ -1,13 +1,16 @@
 from src.workflow.services.prompt_service import PromptService
 from src.workflow.services.llm_service import LlmService
+from src.api.modules.websocket.websocket_service import WebsocketService
 from src.utils.decorators.error_hanlder import error_handler
 from src.workflow.state import State
+from fastapi import WebSocket, WebSocketDisconnect
 
 class ResearchAggregator: 
     __MODULE = "research_aggregator.agent"
-    def __init__(self, prompt_service: PromptService, llm_service: LlmService):
+    def __init__(self, prompt_service: PromptService, llm_service: LlmService, websocket_service: WebsocketService):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
+        self.__websocket_service = websocket_service
 
     @error_handler(module=__MODULE)
     async def __get_prompt_template(self, state: State):  
@@ -64,6 +67,24 @@ class ResearchAggregator:
         
         chain = prompt | llm
         
-        response = await chain.ainvoke({"input": state["input"]})
+        websocket: WebSocket = self.__websocket_service.get_connection(state["chat_id"])
+        
+        chunks = []
+        try:
+           async for chunk in chain.astream({"input": state["input"]}):
+                if websocket:
+                    try:
+                       await websocket.send_json(chunk.content.strip())
+                    except WebSocketDisconnect:
+                       self.__websocket_service.remove_connection(state["chat_id"])
+                       websocket = None
+                       raise
+                    
+                chunks.append(chunk.content.strip())
+               
+        except Exception as e:
+            print(f"Error during streaming: {e}")
+            raise
 
-        return response.content.strip()
+        finally:
+            return " ".join(chunks)
