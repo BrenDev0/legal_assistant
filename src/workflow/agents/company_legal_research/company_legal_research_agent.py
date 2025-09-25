@@ -56,11 +56,11 @@ class CompanyLegalResearcher:
                 async for chunk in chain.astream({"input": state["input"]}):
                     if websocket:
                         try:
-                            await websocket.send_json(chunk.content.strip())
+                            await websocket.send_json(chunk.content)
                         except WebSocketDisconnect:
                             self.__websocket_service.remove_connection(state["chat_id"])
                             websocket = None
-                    chunks.append(chunk.content.strip())
+                    chunks.append(chunk.content)
             except Exception as e:
                 print(f"Error during streaming: {e}")
                 raise
