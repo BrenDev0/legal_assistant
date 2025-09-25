@@ -2,6 +2,7 @@ from src.dependencies.container import Container
 from src.api.core.services.redis_service import RedisService
 from src.workflow.services.embeddings_service import EmbeddingService
 from src.workflow.services.prompt_service import PromptService
+from src.api.modules.websocket.websocket_service import WebsocketService
 from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
 from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
 from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
@@ -21,7 +22,9 @@ def configure_container():
   Container.register("redis_service", redis_service)
 
   
-  
+  websocket_service = WebsocketService()
+  Container.register("websocket_service", websocket_service)
+
   ## Dependent # All independent instances must be configured above this line ##
   prompt_service = PromptService(
     embedding_service=embeddings_service,
@@ -32,7 +35,8 @@ def configure_container():
  ## Agents ##
   company_legal_researcher = CompanyLegalResearcher(
     prompt_service=prompt_service,
-    llm_service=llm_service
+    llm_service=llm_service,
+    websocket_service=websocket_service
   )
   Container.register("company_legal_researcher", company_legal_researcher)
 
@@ -44,13 +48,15 @@ def configure_container():
   
   general_legal_researcher = GeneralLegalResearcher(
     prompt_service=prompt_service,
-    llm_service=llm_service
+    llm_service=llm_service,
+    websocket_service=websocket_service
   )
   Container.register("general_legal_researcher", general_legal_researcher)
 
   research_aggregator = ResearchAggregator(
     prompt_service=prompt_service,
-    llm_service=llm_service
+    llm_service=llm_service,
+    websocket_service=websocket_service
   )
   Container.register("research_aggregator", research_aggregator)
 
