@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 
-@router.websocket("/ws/internal/interact/{chat_id}")
+@router.websocket("/internal/interact/{chat_id}")
 async def websocket_interact(websocket: WebSocket, chat_id: UUID):
     await websocket.accept()
     params = websocket.query_params
