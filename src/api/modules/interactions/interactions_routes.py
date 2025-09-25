@@ -1,4 +1,4 @@
-from  fastapi import APIRouter, Body, Request, Depends
+from  fastapi import APIRouter, Body, Request, Depends, BackgroundTasks
 from  src.api.modules.interactions.interactions_models import InteractionRequest
 from src.api.core.models.http_responses import CommonHttpResponse
 from src.api.core.middleware.hmac_verification import verify_hmac
@@ -26,8 +26,9 @@ async def get_state(data: InteractionRequest = Body(...)):
 
     return state
 
-@router.post("/internal/interact", status_code=200, response_model=CommonHttpResponse)
+@router.post("/internal/interact", status_code=202, response_model=CommonHttpResponse)
 async def secure_interact(
+    background_tasks: BackgroundTasks,
     req: Request,
     _: None = Depends(verify_hmac),
     state: State = Depends(get_state),
@@ -35,6 +36,7 @@ async def secure_interact(
     controller: InteractionsController = Depends(get_interactions_controller)
 ):
     return await controller.interact(
+        background_tasks=background_tasks,
         req=req,
         state=state,
         graph=graph
