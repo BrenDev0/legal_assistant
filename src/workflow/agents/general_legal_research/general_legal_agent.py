@@ -64,7 +64,7 @@ class GeneralLegalResearcher:
             websocket: WebSocket = self.__websocket_service.get_connection(state["chat_id"])
             
             try:
-                async for chunk in chain.astrem({"input": state["input"]}):
+                async for chunk in chain.astream({"input": state["input"]}):
                     if websocket:
                         try:
                             await websocket.send_json(chunk.content.strip())
