@@ -113,7 +113,7 @@ def create_graph():
     graph.add_edge("general_legal_research", "aggregator")
     graph.add_edge("company_legal_research", "aggregator")
     graph.add_edge("aggregator", "handle_resposne")
-    graph.add_edge("handle_reposne", END)
+    graph.add_edge("handle_resposne", END)
 
 
     return graph.compile()
