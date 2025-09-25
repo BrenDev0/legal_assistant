@@ -1,15 +1,13 @@
 from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from typing import List, Dict, Any
-from src.api.core.services.redis_service import RedisService
 from src.workflow.services.embeddings_service import EmbeddingService
 from src.workflow.state import State
-from  datetime import datetime
-class PromptService:
-    def __init__(self, embedding_service: EmbeddingService, redis_service: RedisService):
-        self.embedding_service = embedding_service
-        self.redis_service = redis_service
 
+class PromptService:
+    def __init__(self, embedding_service: EmbeddingService):
+        self.embedding_service = embedding_service
+       
 
     async def custom_prompt_template(self, state: State, system_message: str, with_chat_history: bool = False, with_context: bool = False, context_collection: str = None):
         messages = [
