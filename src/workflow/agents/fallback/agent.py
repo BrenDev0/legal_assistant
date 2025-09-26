@@ -34,6 +34,7 @@ class FallBackAgent:
         - General legal principles, statutes, and regulations
         - Company-specific legal documents and policies
         - Legal compliance and related matters
+        - **Format your response using valid Markdown. Use headings, bullet points, numbers, indentations, and bold or italics for clarity.**
 
         If the user would like help with a legal question, encourage them to ask about those topics and provide more specific details if possible.
         """
