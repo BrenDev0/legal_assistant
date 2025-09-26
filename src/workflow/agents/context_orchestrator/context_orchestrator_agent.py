@@ -28,10 +28,14 @@ class ContextOrchestrator:
 
         Multiple fields can be True simultaneously.
 
+        If the user's query is outside the scope of legal topics, or is too vague or ambiguous to determine the required context, set **all fields to False**.
+
         Examples:
-        - "What are employment laws in Jalisco?" - general_law: True, company_law: False, chat_history: False
-        - "Review our employment contract" - general_law: False, company_law: True, chat_history: False
-        - "Is our privacy policy compliant?" - general_law: True, company_law: True, chat_history: False
+        - "What are employment laws in Jalisco?" - general_law: True, company_law: False
+        - "Review our employment contract" - general_law: False, company_law: True
+        - "Is our privacy policy compliant?" - general_law: True, company_law: True
+        - "What's the weather today?" - general_law: False, company_law: False
+        - "Help" - general_law: False, company_law: False
         """
         prompt = await self.__prompt_service.custom_prompt_template(state=state, system_message=system_message, with_chat_history=True)
 

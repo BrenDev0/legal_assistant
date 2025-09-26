@@ -14,6 +14,8 @@ from src.workflow.agents.company_legal_research.company_legal_research_agent imp
 from src.workflow.agents.company_legal_research.company_legal_research_dependencies import get_company_legal_agent
 from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
 from src.workflow.agents.research_aggregator.research_aggregator_dependencies import get_research_aggregator
+from src.workflow.agents.fallback.fallback_agent import FallBackAgent
+from src.workflow.agents.fallback.fallback_dependencies import get_fallback_agent
 
 from src.utils.http.get_hmac_header import generate_hmac_headers
 
@@ -22,7 +24,8 @@ def create_graph(
     context_orchestrator_agent: ContextOrchestrator = Depends(get_context_orchestrator),
     general_legal_researcher: GeneralLegalResearcher = Depends(get_general_legal_agent),
     company_legal_researcher: CompanyLegalResearcher = Depends(get_company_legal_agent),
-    research_aggregator: ResearchAggregator = Depends(get_research_aggregator)
+    research_aggregator: ResearchAggregator = Depends(get_research_aggregator),
+    fallback_agent: FallBackAgent = Depends(get_fallback_agent)
 ):
     graph = StateGraph(State)
 
@@ -44,7 +47,7 @@ def create_graph(
             next_nodes.append("company_legal_research")
         
         if not next_nodes:
-            next_nodes.append("aggregator")
+            next_nodes.append("fallback")
         
         return next_nodes
     
@@ -65,6 +68,10 @@ def create_graph(
     async def aggregator_node(state: State):
         response = await research_aggregator.interact(state=state)
 
+        return {"final_response": response}
+    
+    async def fallback_node(state: State):
+        response = await fallback_agent.interact(state=state)
         return {"final_response": response}
     
     async def hanlde_response_node(state: State):
@@ -90,6 +97,7 @@ def create_graph(
     graph.add_node("general_legal_research", general_legal_research_node)
     graph.add_node("company_legal_research", company_legal_research_node)
     graph.add_node("aggregator", aggregator_node)
+    graph.add_node("fallback", fallback_node)
     graph.add_node("handle_response", hanlde_response_node)
     
     graph.add_edge(START, "context_orchestrator")
@@ -100,6 +108,7 @@ def create_graph(
         [
             "general_legal_research",
             "company_legal_research",
+            "fallback",
             "aggregator"
         ]
     )
@@ -107,6 +116,7 @@ def create_graph(
     graph.add_edge("general_legal_research", "aggregator")
     graph.add_edge("company_legal_research", "aggregator")
     graph.add_edge("aggregator", "handle_response")
+    graph.add_edge("fallback", "handle_response")
     graph.add_edge("handle_response", END)
 
 
