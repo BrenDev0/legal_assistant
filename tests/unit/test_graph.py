@@ -3,7 +3,7 @@ from unittest.mock import Mock, AsyncMock, patch
 from uuid import uuid4
 from src.workflow.graph import create_graph
 from src.workflow.state import State
-from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.agents.context_orchestrator.models import ContextOrchestratorOutput
 from src.dependencies.container import Container
 
 @pytest.fixture

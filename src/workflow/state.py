@@ -1,5 +1,5 @@
 from typing_extensions import TypedDict
-from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.agents.context_orchestrator.models import ContextOrchestratorOutput
 from  uuid import UUID
 from typing import Dict, List, Any
 

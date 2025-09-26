@@ -1,7 +1,7 @@
 from src.workflow.services.prompt_service import PromptService
 from langchain_openai import ChatOpenAI
 from src.workflow.state import State
-from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.agents.context_orchestrator.models import ContextOrchestratorOutput
 from src.workflow.services.llm_service import LlmService
 from src.utils.decorators.error_hanlder import error_handler
 

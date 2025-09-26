@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, ANY
-from src.workflow.agents.general_legal_research.general_legal_agent import GeneralLegalResearcher
+from src.workflow.agents.general_legal_research.agent import GeneralLegalResearcher
 from src.workflow.services.prompt_service import PromptService
 from src.workflow.services.llm_service import LlmService
 from src.workflow.state import State

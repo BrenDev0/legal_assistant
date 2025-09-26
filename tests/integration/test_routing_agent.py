@@ -2,8 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import pytest
 from unittest.mock import Mock, AsyncMock, ANY
-from src.workflow.agents.context_orchestrator.context_orchestrator_agent import ContextOrchestrator
-from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.agents.context_orchestrator.agent import ContextOrchestrator
+from src.workflow.agents.context_orchestrator.models import ContextOrchestratorOutput
 from src.workflow.services.prompt_service import PromptService
 from src.workflow.state import State
 from langchain_openai import ChatOpenAI

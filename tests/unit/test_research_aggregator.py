@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, ANY
-from src.workflow.agents.research_aggregator.research_aggregator_agent import ResearchAggregator
+from src.workflow.agents.research_aggregator.agent import ResearchAggregator
 from src.workflow.services.prompt_service import PromptService
 from src.workflow.services.llm_service import LlmService
 from src.workflow.state import State
-from src.workflow.agents.context_orchestrator.context_orchestrator_models import ContextOrchestratorOutput
+from src.workflow.agents.context_orchestrator.models import ContextOrchestratorOutput
 from langchain_openai import ChatOpenAI
 from uuid import uuid4
 
