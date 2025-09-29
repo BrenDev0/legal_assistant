@@ -62,7 +62,7 @@ class ResearchAggregator:
         
 
         # Call agent to compose a reposnse  based on the context
-        llm = self.__llm_service.get_llm(temperature=0.5, max_tokens=2000)
+        llm = self.__llm_service.get_llm(temperature=0.5)
         
         prompt = await self.__get_prompt_template(state)
         
