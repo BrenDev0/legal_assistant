@@ -90,7 +90,7 @@ def create_graph(
                 json=req_body
             )
 
-            print(res)
+            print(res.json())
 
             return state
             
