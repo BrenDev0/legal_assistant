@@ -90,7 +90,8 @@ def create_graph(
                 json=req_body
             )
 
-            print(res.json())
+            if res.status_code != 201:
+                print("POST response:", res)
 
             return state
             
