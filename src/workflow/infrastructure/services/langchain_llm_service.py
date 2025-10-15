@@ -24,6 +24,7 @@ class LangchainLlmService(LlmService):
         )
         
         async for chunk in llm.astream(prompt):
+            print(chunk, "STREAM LLM SERVCIVE::::::::::::::::::::")
             yield chunk.content
     
     @error_handler(module=__MODULE)
