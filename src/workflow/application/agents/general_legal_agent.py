@@ -55,7 +55,7 @@ class GeneralLegalResearcher:
     @error_handler(module=__MODULE)
     async def interact(self, state: State):
         prompt = await self.__get_prompt(state)
-        
+        print(prompt, "Prompt:::::::::::::::::::::")
         # if not state["context_orchestrator_response"].company_law:
         #     chunks = []
         #     sentence = "" 
