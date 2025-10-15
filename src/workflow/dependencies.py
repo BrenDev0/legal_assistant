@@ -1,4 +1,5 @@
 from fastapi import Depends
+import os 
 
 from src.workflow.application.agents.company_research_agent import CompanyLegalResearcher
 from src.workflow.application.agents.context_orchestrator_agent import ContextOrchestrator
@@ -27,7 +28,9 @@ def get_vecotr_repository(
     )
 
 def get_embeddings_service() -> EmbeddingService:
-    return OpenAIEmbeddingService()
+    return OpenAIEmbeddingService(
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
 
 
 def get_llm_service() -> LlmService:
