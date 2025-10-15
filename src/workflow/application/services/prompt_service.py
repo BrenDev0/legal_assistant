@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Dict, Any
 
 from src.workflow.domain.entities import Message
 
@@ -9,7 +9,7 @@ class PromptService:
         self,  
         system_message: str, 
         input: str = None,
-        chat_history: List[Message] = None,
+        chat_history: List[Dict[str, str]] = None,
         context: str = None
     ) -> str:
         messages = [
@@ -33,8 +33,8 @@ class PromptService:
         if chat_history:
             messages.append("\n\nCONVERSATION HISTORY:")
             for msg in chat_history:
-                message_type = msg.message_type
-                messages.append(f"{message_type}: {msg.text}")
+                message_type = msg["message_type"]
+                messages.append(f"{message_type}: {msg["text"]}")
 
         return messages
     
