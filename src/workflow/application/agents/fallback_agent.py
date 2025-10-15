@@ -2,7 +2,7 @@ from src.workflow.application.services.prompt_service import PromptService
 from src.workflow.domain.services.llm_service import LlmService
 from src.shared.application.use_cases.ws_streaming import WsStreaming
 from src.workflow.state import State
-from src.utils.decorators.error_hanlder import error_handler
+from src.shared.utils.decorators.error_hanlder import error_handler
 
 class FallBackAgent:
     __MODULE = "fallback.agent"

@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 from langchain_openai import ChatOpenAI
 
 from src.workflow.domain.services.llm_service import LlmService
-from src.utils.decorators.error_hanlder import error_handler
+from src.shared.utils.decorators.error_hanlder import error_handler
 
 class LangchainLlmService(LlmService):
     __MODULE = "langchain.llm_service"

@@ -17,7 +17,7 @@ from src.workflow.dependencies import get_research_aggregator
 from src.workflow.application.agents.fallback_agent import FallBackAgent
 from src.workflow.dependencies import get_fallback_agent
 
-from src.utils.http.get_hmac_header import generate_hmac_headers
+from src.shared.utils.http.get_hmac_header import generate_hmac_headers
 
 
 def create_graph(

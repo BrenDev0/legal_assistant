@@ -2,7 +2,7 @@ import os
 from src.workflow.application.services.prompt_service import PromptService
 from src.workflow.domain.services.llm_service import LlmService
 from src.workflow.state import State
-from src.utils.decorators.error_hanlder import error_handler
+from src.shared.utils.decorators.error_hanlder import error_handler
 from src.workflow.application.use_cases.search_for_context import SearchForContext
 from src.shared.application.use_cases.ws_streaming import WsStreaming
 
