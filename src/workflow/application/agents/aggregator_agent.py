@@ -99,7 +99,7 @@ class ResearchAggregator:
                     voice=False
                 )
             
-                return "".join(chunks)
+            return "".join(chunks)
 
 
 

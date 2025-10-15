@@ -90,7 +90,7 @@ class CompanyLegalResearcher:
                         voice=False
                     )
                 
-                    return "".join(chunks)
+                return "".join(chunks)
         
         response = await self.__llm_service.invoke(
             prompt=prompt,
