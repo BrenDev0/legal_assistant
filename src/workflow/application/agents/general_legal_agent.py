@@ -56,39 +56,39 @@ class GeneralLegalResearcher:
     async def interact(self, state: State):
         prompt = await self.__get_prompt(state)
         print(prompt, "Prompt:::::::::::::::::::::")
-        # if not state["context_orchestrator_response"].company_law:
-        #     chunks = []
-        #     sentence = "" 
-        #     async for chunk in self.__llm_service.generate_stream(
-        #         prompt=prompt,
-        #         temperature=0.0
-        #     ):
-        #         print(chunk, "chunk_________")
-        #         chunks.append(chunk)
-        #         if state.get("voice"):
-        #             sentence += chunk
-        #             # Check for sentence-ending punctuation
-        #             if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-        #                 await self.__streaming.execute(
-        #                     ws_connection_id=state["chat_id"],
-        #                     text=sentence.strip(),
-        #                     voice=True
-        #                 )
-        #                 sentence = ""
-        #         else: 
-        #             await self.__streaming.execute(
-        #                 ws_connection_id=state["chat_id"],
-        #                 text=chunk,
-        #                 voice=False
-        #             )
-        #     # After streaming all chunks, send any remaining text for voice
-        #     if state.get("voice") and sentence.strip():
-        #         await self.__streaming.execute(
-        #             ws_connection_id=state["chat_id"],
-        #             text=sentence.strip(),
-        #             voice=True
-        #         )
-        #     return "".join(chunks)
+        if not state["context_orchestrator_response"].company_law:
+            chunks = []
+            sentence = "" 
+            async for chunk in self.__llm_service.generate_stream(
+                prompt=prompt,
+                temperature=1.0
+            ):
+                print(chunk, "chunk_________")
+                chunks.append(chunk)
+                if state.get("voice"):
+                    sentence += chunk
+                    # Check for sentence-ending punctuation
+                    if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
+                        await self.__streaming.execute(
+                            ws_connection_id=state["chat_id"],
+                            text=sentence.strip(),
+                            voice=True
+                        )
+                        sentence = ""
+                else: 
+                    await self.__streaming.execute(
+                        ws_connection_id=state["chat_id"],
+                        text=chunk,
+                        voice=False
+                    )
+            # After streaming all chunks, send any remaining text for voice
+            if state.get("voice") and sentence.strip():
+                await self.__streaming.execute(
+                    ws_connection_id=state["chat_id"],
+                    text=sentence.strip(),
+                    voice=True
+                )
+            return "".join(chunks)
         
         response = await self.__llm_service.invoke(
             prompt=prompt,
