@@ -21,7 +21,8 @@ async def get_state(data: InteractionRequest = Body(...)):
         context_orchestrator_response=None,
         general_legal_response="",
         company_legal_response="",
-        final_response=""
+        final_response="",
+        voice=False
     )
 
     return state
