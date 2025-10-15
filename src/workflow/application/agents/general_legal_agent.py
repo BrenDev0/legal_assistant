@@ -55,7 +55,6 @@ class GeneralLegalResearcher:
     @error_handler(module=__MODULE)
     async def interact(self, state: State):
         prompt = await self.__get_prompt(state)
-        print(prompt, "Prompt:::::::::::::::::::::")
         if not state["context_orchestrator_response"].company_law:
             chunks = []
             sentence = "" 
@@ -63,7 +62,6 @@ class GeneralLegalResearcher:
                 prompt=prompt,
                 temperature=1.0
             ):
-                print(chunk, "chunk_________")
                 chunks.append(chunk)
                 if state.get("voice"):
                     sentence += chunk

@@ -24,8 +24,6 @@ class LangchainLlmService(LlmService):
         )
         
         async for chunk in llm.astream(prompt):
-            if not chunk.content or chunk.content == "None" or chunk.content.strip() == "":
-                continue  # Skip invalid chunks
             yield chunk.content
     
     @error_handler(module=__MODULE)

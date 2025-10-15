@@ -13,8 +13,7 @@ class PromptService:
         context: str = None
     ) -> str:
         messages = [
-            system_message,
-            f"You will always answer in {os.getenv('AGENT_LANGUAGE')}",
+            system_message
         ]
         
         if chat_history:
