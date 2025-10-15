@@ -60,7 +60,7 @@ class GeneralLegalResearcher:
             sentence = "" 
             async for chunk in self.__llm_service.generate_stream(
                 prompt=prompt,
-                temperature=1.0
+                temperature=0.5
             ):
                 chunks.append(chunk)
                 if state.get("voice"):
@@ -92,7 +92,5 @@ class GeneralLegalResearcher:
             prompt=prompt,
             temperature=0.0
         )
-
-        print(response, "resposne:::::::::::")
 
         return response
