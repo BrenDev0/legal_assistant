@@ -40,11 +40,11 @@ class GeneralLegalResearcher:
 
         Analyze the query and provide comprehensive Mexican legal context using the available legal documents.
         """
-        context = self.__search_for_context.execute(
+        context = await self.__search_for_context.execute(
             input=state["input"],
             namespace=os.getenv("LEGAL_COLLECTION")
         )
-        prompt = await self.__prompt_service.build_prompt(
+        prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
             input=state["input"],
             context=context

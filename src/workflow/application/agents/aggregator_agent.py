@@ -17,7 +17,7 @@ class ResearchAggregator:
         self.__streaming = streaming
 
     @error_handler(module=__MODULE)
-    async def __get_prompt(self, state: State):  
+    def __get_prompt(self, state: State):  
         context_parts = []
         
         if state.get('general_legal_response'):
@@ -45,7 +45,7 @@ class ResearchAggregator:
         Synthesize the above research to provide a comprehensive legal response.
         """
 
-        prompt = await self.__prompt_service.build_prompt(
+        prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
             chat_history=state["chat_history"],
             input=state["input"]
@@ -64,7 +64,7 @@ class ResearchAggregator:
         if company and not general:
             return company.strip()
             
-        prompt = await self.__get_prompt(state)
+        prompt = self.__get_prompt(state)
         
        
         

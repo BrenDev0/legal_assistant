@@ -11,7 +11,7 @@ class ContextOrchestrator:
         self.__llm_service = llm_service
 
     @error_handler(module=__MODULE)
-    async def __get_prompt(self, state: State):
+    def __get_prompt(self, state: State):
         system_message = """
         You are a legal context orchestrator agent. Analyze the user's query to determine what information is needed.
 
@@ -36,7 +36,7 @@ class ContextOrchestrator:
         - "What's the weather today?" - general_law: False, company_law: False
         - "Help" - general_law: False, company_law: False
         """
-        prompt = await self.__prompt_service.build_prompt(
+        prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
             chat_history=state["chat_history"],
             input=state["input"]
@@ -46,7 +46,7 @@ class ContextOrchestrator:
 
     @error_handler(module=__MODULE)
     async def interact(self, state: State) -> ContextOrchestratorOutput:   
-        prompt = await self.__get_prompt(state)
+        prompt = self.__get_prompt(state)
 
         response = await self.__llm_service.invoke_structured(
             prompt=prompt,

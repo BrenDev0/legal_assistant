@@ -41,12 +41,12 @@ class CompanyLegalResearcher:
         """
         collection_name = f"{state['company_id']}_company_docs"
 
-        context = self.__search_for_context.execute(
+        context = await self.__search_for_context.execute(
             input=state["input"],
             namespace=collection_name
         )
 
-        prompt = await self.__prompt_service.build_prompt(
+        prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
             input=state["input"],
             context=context

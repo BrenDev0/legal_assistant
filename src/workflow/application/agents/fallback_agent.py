@@ -17,7 +17,7 @@ class FallBackAgent:
         self.__streaming = streaming
 
     @error_handler(module=__MODULE)
-    async def __get_prompt(
+    def __get_prompt(
         self,
         state: State
     ):
@@ -37,7 +37,7 @@ class FallBackAgent:
         If the user would like help with a legal question, encourage them to ask about those topics and provide more specific details if possible.
         """
 
-        prompt = await self.__prompt_service.build_prompt(
+        prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
             input=state["input"]
         )
@@ -49,7 +49,7 @@ class FallBackAgent:
         self,
         state: State
     ): 
-        prompt = await self.__get_prompt(state=state)
+        prompt = self.__get_prompt(state=state)
 
         chunks = []
         async for chunk in self.__llm_service.generate_stream(
