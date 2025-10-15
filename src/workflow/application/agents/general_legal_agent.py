@@ -63,6 +63,7 @@ class GeneralLegalResearcher:
                 prompt=prompt,
                 temperature=0.5
             ):
+                print(chunk, "chunk_________")
                 chunks.append(chunk)
                 if state.get("voice"):
                     sentence += chunk
