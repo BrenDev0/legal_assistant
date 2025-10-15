@@ -26,8 +26,6 @@ class QdrantVectorRepository(VectorRepository):
             limit=top_k,
             with_payload=True
         )
-
-        print(results)
         
         return [
             SearchResult(
