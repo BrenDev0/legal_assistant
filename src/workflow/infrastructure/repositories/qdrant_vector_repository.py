@@ -31,7 +31,8 @@ class QdrantVectorRepository(VectorRepository):
             SearchResult(
                 id=point.id,
                 score=point.score,
-                payload=point.payload
+                payload=point.payload,
+                metadata=point.payload.get("metadata") 
             )
             for point in results
         ]
