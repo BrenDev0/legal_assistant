@@ -5,17 +5,17 @@ from langgraph.graph import StateGraph, END, START
 import httpx
 
 from src.workflow.state import State
-from src.workflow.agents.context_orchestrator.agent import ContextOrchestrator
-from src.workflow.agents.context_orchestrator.dependencies import get_context_orchestrator
-from src.workflow.agents.context_orchestrator.models import ContextOrchestratorOutput
-from src.workflow.agents.general_legal_research.agent import GeneralLegalResearcher
-from src.workflow.agents.general_legal_research.dependencies import get_general_legal_agent
-from src.workflow.agents.company_legal_research.agent import CompanyLegalResearcher
-from src.workflow.agents.company_legal_research.dependencies import get_company_legal_agent
-from src.workflow.agents.research_aggregator.agent import ResearchAggregator
-from src.workflow.agents.research_aggregator.dependencies import get_research_aggregator
-from src.workflow.agents.fallback.agent import FallBackAgent
-from src.workflow.agents.fallback.dependencies import get_fallback_agent
+from src.workflow.application.agents.context_orchestrator_agent import ContextOrchestrator
+from src.workflow.dependencies import get_context_orchestrator
+from src.workflow.domain.models import ContextOrchestratorOutput
+from src.workflow.application.agents.general_legal_agent import GeneralLegalResearcher
+from src.workflow.dependencies import get_general_legal_agent
+from src.workflow.application.agents.company_research_agent import CompanyLegalResearcher
+from src.workflow.dependencies import get_company_legal_agent
+from src.workflow.application.agents.aggregator_agent import ResearchAggregator
+from src.workflow.dependencies import get_research_aggregator
+from src.workflow.application.agents.fallback_agent import FallBackAgent
+from src.workflow.dependencies import get_fallback_agent
 
 from src.utils.http.get_hmac_header import generate_hmac_headers
 
