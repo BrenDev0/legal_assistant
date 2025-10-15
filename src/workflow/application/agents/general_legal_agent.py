@@ -56,7 +56,7 @@ class GeneralLegalResearcher:
     async def interact(self, state: State):
         prompt = await self.__get_prompt(state)
         
-        if not state["context_orchestrator_response"].general_law:
+        if not state["context_orchestrator_response"].company_law:
             chunks = []
             async for chunk in self.__llm_service.generate_stream(
                 prompt=prompt,
