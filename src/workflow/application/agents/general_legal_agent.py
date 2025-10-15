@@ -60,7 +60,7 @@ class GeneralLegalResearcher:
             chunks = []
             async for chunk in self.__llm_service.generate_stream(
                 prompt=prompt,
-                temperature=0.0
+                temperature=0.5
             ):
                 chunks.append(chunk)
                 if state["voice"]:
