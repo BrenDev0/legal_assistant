@@ -26,12 +26,15 @@ class QdrantVectorRepository(VectorRepository):
             limit=top_k,
             with_payload=True
         )
+
+        print(results)
         
         return [
             SearchResult(
                 id=point.id,
                 score=point.score,
                 payload=point.payload,
+                text=point.payload.get("text"),
                 metadata=point.payload.get("metadata") 
             )
             for point in results
