@@ -16,12 +16,13 @@ class SearchForContext():
     async def execute(
         self,
         input: str,
-        namespace: str
+        namespace: str,
+        top_k: int = 2
     ) -> str:
         query_vector = await self.__embedding_service.embed_query(input)
         results = await self.__repository.similarity_search(
             query_vector=query_vector,
-            top_k=5,
+            top_k=top_k,
             namespace=namespace
         )
 
