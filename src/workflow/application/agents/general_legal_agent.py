@@ -58,12 +58,13 @@ class GeneralLegalResearcher:
         
         if not state["context_orchestrator_response"].company_law:
             chunks = []
+            sentence = ""  # <-- Initialize sentence
             async for chunk in self.__llm_service.generate_stream(
                 prompt=prompt,
                 temperature=0.5
             ):
                 chunks.append(chunk)
-                if state["voice"]:
+                if state.get("voice"):
                     sentence += chunk
                     # Check for sentence-ending punctuation
                     if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
@@ -73,21 +74,19 @@ class GeneralLegalResearcher:
                             voice=True
                         )
                         sentence = ""
-
-                    # Send any remaining text after the stream ends
-                    if sentence.strip():
-                        await self.__streaming.execute(
-                            ws_connection_id=state["chat_id"],
-                            text=sentence.strip(),
-                            voice=True
-                        )
                 else: 
                     await self.__streaming.execute(
                         ws_connection_id=state["chat_id"],
                         text=chunk,
                         voice=False
                     )
-                
+            # After streaming all chunks, send any remaining text for voice
+            if state.get("voice") and sentence.strip():
+                await self.__streaming.execute(
+                    ws_connection_id=state["chat_id"],
+                    text=sentence.strip(),
+                    voice=True
+                )
             return "".join(chunks)
         
         response = await self.__llm_service.invoke(
