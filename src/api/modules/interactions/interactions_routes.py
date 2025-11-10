@@ -22,7 +22,7 @@ async def get_state(data: InteractionRequest = Body(...)):
         general_legal_response="",
         company_legal_response="",
         final_response="",
-        voice=False
+        voice=data.voice
     )
 
     return state

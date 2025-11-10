@@ -1,7 +1,7 @@
 from typing_extensions import TypedDict
 from src.workflow.domain.models import ContextOrchestratorOutput
 from  uuid import UUID
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 class State(TypedDict):
     company_id: UUID
@@ -12,4 +12,4 @@ class State(TypedDict):
     company_legal_response: str
     final_response: str
     chat_id: UUID
-    voice: bool
+    voice: Optional[bool] = False

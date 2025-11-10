@@ -8,6 +8,7 @@ class InteractionRequest(BaseModel):
     company_id: UUID
     chat_history: List[Dict[str, Any]]
     user_id: UUID
+    voice: Optional[bool] = False
 
 class  InteractionResponse(BaseModel):
     response: str

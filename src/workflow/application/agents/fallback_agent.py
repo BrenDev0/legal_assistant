@@ -57,11 +57,29 @@ class FallBackAgent:
             temperature=0.5
         ):
             chunks.append(chunk)
+            if state["voice"]:
+                sentence += chunk
+                # Check for sentence-ending punctuation
+                if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
+                    await self.__streaming.execute(
+                        ws_connection_id=state["chat_id"],
+                        text=sentence.strip(),
+                        voice=True
+                    )
+                    sentence = ""
 
-            await self.__streaming.execute(
-                ws_connection_id=state["chat_id"],
-                text=chunk,
-                voice=False
-            )
-        
-        return "".join(chunks)
+                # Send any remaining text after the stream ends
+                if sentence.strip():
+                    await self.__streaming.execute(
+                        ws_connection_id=state["chat_id"],
+                        text=sentence.strip(),
+                        voice=True
+                    )
+            else: 
+                await self.__streaming.execute(
+                    ws_connection_id=state["chat_id"],
+                    text=chunk,
+                    voice=False
+                )
+            
+            return "".join(chunks)
