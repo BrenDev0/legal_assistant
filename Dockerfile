@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /app/.venv ./.venv
 COPY src/ ./src/
 EXPOSE 8003
-CMD ["./.venv/bin/fastapi", "run", "src/api/server.py", "--port", "8003", "--forwarded-allow-ips='*'", "--root-path", "/95e222ef-c637-42d3-a81e-955beeeb0ba2"]
+CMD [ "/app/.venv/bin/uvicorn", "src.api.server:app", "--host", "0.0.0.0", "--port", "8000" ]
