@@ -32,7 +32,7 @@ async def websocket_interact(
 
     WebsocketConnectionsContainer.register_connection(chat_id, websocket)
     
-    print(f'Websocket connection: {chat_id} opened.')
+    logger.info(f'Websocket connection: {chat_id} opened.')
 
     if voice:
         greeting = get_greeting()
@@ -49,4 +49,4 @@ async def websocket_interact(
 
     except WebSocketDisconnect:
         WebsocketConnectionsContainer.remove_connection(chat_id)
-        print(f'Websocket connection: {chat_id} closed.')
+        logger.info(f'Websocket connection: {chat_id} closed.')

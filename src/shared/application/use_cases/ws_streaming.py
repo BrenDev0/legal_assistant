@@ -1,8 +1,9 @@
 from typing import Union
 from uuid import UUID
-
+import logging
 from src.shared.domain.services.text_to_speech import TextToSpeech
 from src.api.websocket.transport import WebSocketTransportService
+logger = logging.getLogger(__name__)
 
 class WsStreaming():
     def __init__(
@@ -27,8 +28,9 @@ class WsStreaming():
                     await self.__ws_tranport_service.send(ws_connection_id,{
                         "type": type
                     })
+                    return 
                 except Exception as e:
-                    print(str(e))
+                    logger.info(str(e))
                     return 
                 
             audio_chunk = self.__tts_service.transcribe(text)
@@ -38,7 +40,7 @@ class WsStreaming():
                     "audio_data": audio_chunk
                 })
             except Exception as e:
-                print(str(e))
+                logger.info(str(e))
                 return 
         
         else: 

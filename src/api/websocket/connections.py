@@ -1,5 +1,8 @@
+import logging
 from typing import Union, Dict, Any
 from uuid import UUID
+
+logger = logging.getLogger(__name__)
 
 class WebsocketConnectionsContainer:
     _active_connections: Dict[str, Any] = {}
@@ -8,7 +11,7 @@ class WebsocketConnectionsContainer:
     def register_connection(cls, connection_id: Union[UUID, str], websocket: Any):
         key = str(connection_id)
         cls._active_connections[key] = websocket
-        print(f"connection {key} added.")
+        logger.info(f"connection {key} added.")
         return
     
     @classmethod
@@ -16,7 +19,7 @@ class WebsocketConnectionsContainer:
         key = str(connection_id)
         connection = cls._active_connections.get(key)
         if not connection:
-            print(f"Connection {key} not found in get_connection()")
+            logger.info(f"Connection {key} not found in get_connection()")
             return None
 
         return connection
@@ -25,4 +28,4 @@ class WebsocketConnectionsContainer:
     def remove_connection(cls, connection_id: Union[UUID, str]):
         key = str(connection_id)
         cls._active_connections.pop(key, None)
-        print(f'Connection: {key} was removed.')
+        logger.info(f'Connection: {key} was removed.')

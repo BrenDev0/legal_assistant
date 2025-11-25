@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -7,6 +8,11 @@ from src.shared.dependencies.configure_container import configure_container
 
 from src.api.modules.interactions import interactions_routes, interactions_ws
 from src.api.websocket.connections import WebsocketConnectionsContainer
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

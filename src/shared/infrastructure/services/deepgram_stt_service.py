@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-
+import logging
 import asyncio
 from typing import Any, Dict
 import base64
@@ -8,6 +8,7 @@ import json
 import os
 import websockets
 from src.shared.domain.services.speech_to_text import SpeechToText
+logger = logging.getLogger(__name__)
 
 class DeepgramSpeechToTextService(SpeechToText):
     def __init__(self, model: str = "nova-2", language: str = "es"):
@@ -37,7 +38,7 @@ class DeepgramSpeechToTextService(SpeechToText):
             return session_id
         
         except Exception as e:
-            print(f"ERROR starting session: {e}")
+            logger.error(f"ERROR starting session: {e}")
             return None
 
     async def send_audio_chunk(self, session_id: str, audio_data: str):
@@ -54,10 +55,10 @@ class DeepgramSpeechToTextService(SpeechToText):
                 await connection.send(audio_bytes)
 
         except websockets.exceptions.ConnectionClosed:
-            print(f"Cannot send - Deepgram connection closed for session: {session_id}")
+            logger.info(f"Cannot send - Deepgram connection closed for session: {session_id}")
             session["is_active"] = False
         except Exception as e:
-            print(f"Error sending audio chunk: {e}")
+            logger.error(f"Error sending audio chunk: {e}")
             session["is_active"] = False
 
 
@@ -76,11 +77,11 @@ class DeepgramSpeechToTextService(SpeechToText):
             # Clean up
             del self.active_sessions[session_id]
             
-            print(f"Session ended: {session_id}")
+            logger.info(f"Session ended: {session_id}")
             return full_transcript
             
         except Exception as e:
-            print(f"Error ending session: {e}")
+            logger.error(f"Error ending session: {e}")
             return " ".join(transcript_parts)
 
     async def cleanup_session(self, session_id: str):
@@ -90,7 +91,7 @@ class DeepgramSpeechToTextService(SpeechToText):
                 session = self.active_sessions[session_id]
                 del self.active_sessions[session_id]
             except Exception as e:
-                print(f"Error cleaning up session: {e}")
+                logger.error(f"Error cleaning up session: {e}")
 
     def get_audio_bytes(self, data: Any) -> bytes:
         try:
@@ -101,7 +102,7 @@ class DeepgramSpeechToTextService(SpeechToText):
             else:
                 return b""
         except Exception as e:
-            print(f"Error decoding audio: {e}")
+            logger.error(f"Error decoding audio: {e}")
             return b""
         
     async def _listen_to_deepgram(self, session_id: str, deepgram_ws: websockets.ClientConnection):
@@ -124,9 +125,9 @@ class DeepgramSpeechToTextService(SpeechToText):
                             session["transcript_parts"].append(transcript)
                         
         except websockets.exceptions.ConnectionClosed:
-            print(f"Deepgram connection closed for session: {session_id}")
+            logger.info(f"Deepgram connection closed for session: {session_id}")
         except Exception as e:
-            print(f"Error listening to Deepgram: {e}")
+            logger.error(f"Error listening to Deepgram: {e}")
         finally:
             # Clean up session
             if session_id in self.active_sessions:

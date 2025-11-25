@@ -1,7 +1,9 @@
+import logging
 from websockets import ConnectionClosed
 from typing import Union, Any
 from uuid import UUID
 from src.api.websocket.connections import WebsocketConnectionsContainer
+logger = logging.getLogger(__name__)
 
 class WebSocketTransportService:
     @staticmethod
@@ -16,8 +18,8 @@ class WebSocketTransportService:
                 await ws.send_json(data)
             
             except ConnectionClosed:
-                print(f"Connection {connection_id} disconnected")
+                logger.info(f"Connection {connection_id} disconnected")
 
             except Exception as e:
-                print(f"Connection id: {connection_id}::::, Error sending data:::: {e}")
+                logger.info(f"Connection id: {connection_id}::::, Error sending data:::: {e}")
                 raise e

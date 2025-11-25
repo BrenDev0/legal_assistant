@@ -1,6 +1,7 @@
 from fastapi import Depends
 from typing import List
 import os
+import logging
 from langgraph.graph import StateGraph, END, START
 import httpx
 
@@ -18,7 +19,7 @@ from src.workflow.application.agents.fallback_agent import FallBackAgent
 from src.workflow.dependencies import get_fallback_agent
 
 from src.shared.utils.http.get_hmac_header import generate_hmac_headers
-
+logger = logging.getLogger(__name__)
 
 def create_graph(
     context_orchestrator_agent: ContextOrchestrator = Depends(get_context_orchestrator),
@@ -91,7 +92,7 @@ def create_graph(
             )
 
             if res.status_code != 201:
-                print("POST response:", res)
+                logger.warning("POST response:", res)
 
             return state
             

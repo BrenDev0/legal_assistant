@@ -1,11 +1,12 @@
 import os
+import logging
 from src.workflow.application.services.prompt_service import PromptService
 from src.workflow.domain.services.llm_service import LlmService
 from src.workflow.state import State
 from src.shared.utils.decorators.error_hanlder import error_handler
 from src.workflow.application.use_cases.search_for_context import SearchForContext
 from src.shared.application.use_cases.ws_streaming import WsStreaming
-
+logger = logging.getLogger(__name__)
 
 class GeneralLegalResearcher:
     __MODULE = "general_legal_research.agent"
@@ -74,25 +75,31 @@ class GeneralLegalResearcher:
                         )
                         sentence = ""
                 else: 
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=chunk,
-                        voice=False
-                    )
+                    try:
+                        await self.__streaming.execute(
+                            ws_connection_id=state["chat_id"],
+                            text=chunk,
+                            voice=False
+                        )  
+                    except Exception as e:
+                        logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
             # After streaming all chunks, send any remaining text for voice
             if state.get("voice") and sentence.strip():
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text=sentence.strip(),
-                    voice=True
-                )
-            
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text="END STREAM",
-                    voice=True,
-                    type="END"
-                )
+                try:
+                    await self.__streaming.execute(
+                        ws_connection_id=state["chat_id"],
+                        text=sentence.strip(),
+                        voice=True
+                    )
+                
+                    await self.__streaming.execute(
+                        ws_connection_id=state["chat_id"],
+                        text="END STREAM",
+                        voice=True,
+                        type="END"
+                    )
+                except Exception as e:
+                    logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
             return "".join(chunks)
         
         response = await self.__llm_service.invoke(
