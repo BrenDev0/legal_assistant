@@ -2,7 +2,7 @@ from typing import Union
 from uuid import UUID
 import logging
 from src.shared.domain.services.text_to_speech import TextToSpeech
-from src.api.websocket.transport import WebSocketTransportService
+from src.features.web_sockets.transport import WebSocketTransportService
 logger = logging.getLogger(__name__)
 
 class WsStreaming():
