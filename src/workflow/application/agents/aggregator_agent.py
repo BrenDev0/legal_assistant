@@ -94,6 +94,13 @@ class ResearchAggregator:
                         text=sentence.strip(),
                         voice=True
                     )
+
+                await self.__streaming.execute(
+                    ws_connection_id=state["chat_id"],
+                    text="END STREAM",
+                    voice=True,
+                    type="END"
+                )
             else: 
                 await self.__streaming.execute(
                     ws_connection_id=state["chat_id"],

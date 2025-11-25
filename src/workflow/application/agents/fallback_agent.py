@@ -83,6 +83,12 @@ class FallBackAgent:
                 text=sentence.strip(),
                 voice=True
             )
+            await self.__streaming.execute(
+                ws_connection_id=state["chat_id"],
+                text="END STREAM",
+                voice=True,
+                type="END"
+            )
             
         return "".join(chunks)
         

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +37,19 @@ app.include_router(interactions_ws.router)
 
 @app.get("/connections", tags=["Internal"])
 async def get_websocket_connections():
+    connections = WebsocketConnectionsContainer._active_connections
+
+    return {
+        "connection_ids": list(connections.keys()),
+        "count": len(connections)
+    }
+
+@app.delete("/connections/{connection_id}", tags=["Internal"])
+async def get_websocket_connections(
+    connection_id: UUID
+):
+    WebsocketConnectionsContainer.remove_connection(connection_id=connection_id)
+
     connections = WebsocketConnectionsContainer._active_connections
 
     return {

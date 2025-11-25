@@ -36,10 +36,12 @@ async def websocket_interact(
 
     if voice:
         greeting = get_greeting()
+        
         await stream.execute(
             ws_connection_id=chat_id,
             text=greeting,
-            voice=True
+            voice=True,
+            type="START" 
         )
     try:
         while True: 

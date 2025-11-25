@@ -16,17 +16,30 @@ class WsStreaming():
     
     async def execute(
         self, 
-        ws_connection_id: Union[UUID, str], 
+        ws_connection_id: Union[UUID, str],
         text: str,
         voice: bool = False,
+        type: str = "audio_response", 
     ):
         if voice:
+            if type == "END":
+                try:
+                    await self.__ws_tranport_service.send(ws_connection_id,{
+                        "type": type
+                    })
+                except Exception as e:
+                    print(str(e))
+                    return 
+                
             audio_chunk = self.__tts_service.transcribe(text)
-        
-            await self.__ws_tranport_service.send(ws_connection_id,{
-                "type": "audio_response",
-                "audio_data": audio_chunk
-            })
+            try:
+                await self.__ws_tranport_service.send(ws_connection_id,{
+                    "type": type,
+                    "audio_data": audio_chunk
+                })
+            except Exception as e:
+                print(str(e))
+                return 
         
         else: 
             await self.__ws_tranport_service.send(ws_connection_id, text)
