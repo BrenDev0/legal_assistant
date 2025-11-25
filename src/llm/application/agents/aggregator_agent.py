@@ -1,8 +1,11 @@
+import logging
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.services.llm_service import LlmService
 from src.shared.utils.decorators.error_hanlder import error_handler
 from src.llm.state import State
 from src.shared.application.use_cases.ws_streaming import WsStreaming
+
+logger = logging.getLogger(__name__)
 
 class ResearchAggregator: 
     __MODULE = "research_aggregator.agent"
@@ -66,17 +69,14 @@ class ResearchAggregator:
             
         prompt = self.__get_prompt(state)
         
-       
-        
         chunks = []
-        sentence = ""
+        sentence = "" 
         async for chunk in self.__llm_service.generate_stream(
             prompt=prompt,
             temperature=0.5
         ):
             chunks.append(chunk)
-            
-            if state["voice"]:
+            if state.get("voice"):
                 sentence += chunk
                 # Check for sentence-ending punctuation
                 if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
@@ -86,29 +86,33 @@ class ResearchAggregator:
                         voice=True
                     )
                     sentence = ""
-
-                # Send any remaining text after the stream ends
-                if sentence.strip():
+            else:
+                try:
                     await self.__streaming.execute(
                         ws_connection_id=state["chat_id"],
-                        text=sentence.strip(),
-                        voice=True
+                        text=chunk,
+                        voice=False
                     )
-
+                except Exception as e:
+                    logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
+        # After streaming all chunks, send any remaining text for voice
+        if state.get("voice") and sentence.strip():
+            try:
+                await self.__streaming.execute(
+                    ws_connection_id=state["chat_id"],
+                    text=sentence.strip(),
+                    voice=True
+                )
+            
                 await self.__streaming.execute(
                     ws_connection_id=state["chat_id"],
                     text="END STREAM",
                     voice=True,
                     type="END"
                 )
-            else: 
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text=chunk,
-                    voice=False
-                )
-            
-            return "".join(chunks)
+            except Exception as e:
+                logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
+        return "".join(chunks)
 
 
 

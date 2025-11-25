@@ -2,7 +2,7 @@ import logging
 from websockets import ConnectionClosed
 from typing import Union, Any
 from uuid import UUID
-from src.features.web_sockets.connections import WebsocketConnectionsContainer
+from src.web_sockets.connections import WebsocketConnectionsContainer
 logger = logging.getLogger(__name__)
 
 class WebSocketTransportService:

@@ -3,7 +3,7 @@ from fastapi import Depends
 from src.shared.application.use_cases.ws_streaming import WsStreaming
 from src.shared.domain.services.text_to_speech import TextToSpeech
 from src.shared.dependencies.services import get_text_to_speech_service, get_ws_transport_service
-from src.features.web_sockets.transport import WebSocketTransportService
+from src.web_sockets.transport import WebSocketTransportService
 
 
 def get_ws_streaming_use_case(

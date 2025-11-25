@@ -4,10 +4,10 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.features.chats.interface.fastapi import interactions_routes
+from src.chats.interface.fastapi import interactions_routes
 
-from src.features.chats.interface.fastapi import interactions_ws
-from src.features.web_sockets.connections import WebsocketConnectionsContainer
+from src.chats.interface.fastapi import interactions_ws
+from src.web_sockets.connections import WebsocketConnectionsContainer
 
 
 def create_fastapi_app():

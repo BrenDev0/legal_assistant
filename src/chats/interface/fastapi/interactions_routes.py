@@ -1,5 +1,5 @@
 from  fastapi import APIRouter, Body, Depends, BackgroundTasks
-from  src.features.chats.domain.interactions_models import InteractionRequest
+from  src.chats.domain.interactions_models import InteractionRequest
 from src.app.domain.models.http_responses import CommonHttpResponse
 from src.app.middleware.hmac_verification import verify_hmac
 from src.llm.state import State

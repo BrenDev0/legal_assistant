@@ -2,7 +2,7 @@ from fastapi import Depends
 from src.shared.domain.services.speech_to_text import SpeechToText
 from src.shared.domain.services.text_to_speech import TextToSpeech
 from src.shared.infrastructure.services.deepgram_stt_service import DeepgramSpeechToTextService
-from src.features.web_sockets.transport import WebSocketTransportService
+from src.web_sockets.transport import WebSocketTransportService
 
 from src.shared.infrastructure.services.deepgram_tts_service import DeepgramTextToSpeechService
 
