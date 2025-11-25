@@ -57,6 +57,7 @@ class FallBackAgent:
             temperature=0.5
         ):
             chunks.append(chunk)
+            sentence = ""
             if state.get("voice"):
                 sentence += chunk
                 # Check for sentence-ending punctuation

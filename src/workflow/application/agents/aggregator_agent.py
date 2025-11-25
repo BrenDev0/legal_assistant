@@ -74,6 +74,7 @@ class ResearchAggregator:
             temperature=0.5
         ):
             chunks.append(chunk)
+            sentence = ""
             if state["voice"]:
                 sentence += chunk
                 # Check for sentence-ending punctuation

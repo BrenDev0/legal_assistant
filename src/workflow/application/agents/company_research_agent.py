@@ -65,6 +65,7 @@ class CompanyLegalResearcher:
                 temperature=0.0
             ):
                 chunks.append(chunk)
+                sentence = ""
                 if state["voice"]:
                     sentence += chunk
                     # Check for sentence-ending punctuation
