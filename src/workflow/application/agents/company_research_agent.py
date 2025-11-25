@@ -60,12 +60,13 @@ class CompanyLegalResearcher:
         
         if not state["context_orchestrator_response"].general_law:
             chunks = []
+            sentence = ""
             async for chunk in self.__llm_service.generate_stream(
                 prompt=prompt,
                 temperature=0.0
             ):
                 chunks.append(chunk)
-                sentence = ""
+                
                 if state["voice"]:
                     sentence += chunk
                     # Check for sentence-ending punctuation

@@ -52,12 +52,13 @@ class FallBackAgent:
         prompt = self.__get_prompt(state=state)
 
         chunks = []
+        sentence = ""
         async for chunk in self.__llm_service.generate_stream(
             prompt=prompt,
             temperature=0.5
         ):
             chunks.append(chunk)
-            sentence = ""
+            
             if state.get("voice"):
                 sentence += chunk
                 # Check for sentence-ending punctuation
