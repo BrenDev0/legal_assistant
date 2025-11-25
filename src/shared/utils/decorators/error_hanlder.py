@@ -1,25 +1,48 @@
-# core/decorators/error_handling.py
 from functools import wraps
 import logging
-from typing import Callable, Any
-from src.shared.utils.logs.logger import Logger
-from src.shared.dependencies.container import Container
+import asyncio
+from typing import Callable, Any, Type, Optional, Union
 
+logger = logging.getLogger(__name__)
 
-def error_handler(module: str) -> Callable:
+def error_handler(module: str, custom_exception: Optional[Type[Exception]] = None, **exception_kwargs) -> Callable:
     def decorator(func: Callable) -> Callable:
-        @wraps(func) 
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                logger: Logger = Container.resolve("logger")
-                logger.log(
-                    message=f"Error in {func.__name__}",
-                    level=logging.ERROR,
-                    name=f"{module}.{func.__name__}",
-                    exc_info=True
-                )
-                raise  
-        return wrapper
+        if asyncio.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    logger.error(f"Error in {module}.{func.__name__}: {str(e)}")
+                    
+                    if custom_exception:
+                        error_data = {
+                            "message": str(e),
+                            "module": module,
+                            "function": func.__name__,
+                            **exception_kwargs
+                        }
+                        raise custom_exception(**error_data) from e
+                    else:
+                        raise
+            return async_wrapper
+        else:
+            @wraps(func) 
+            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    logger.error(f"Error in {module}.{func.__name__}: {str(e)}")
+                    
+                    if custom_exception:
+                        error_data = {
+                            "message": str(e),
+                            "module": module,
+                            "function": func.__name__,
+                            **exception_kwargs
+                        }
+                        raise custom_exception(**error_data) from e
+                    else:
+                        raise
+            return sync_wrapper
     return decorator
