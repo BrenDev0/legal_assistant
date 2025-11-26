@@ -7,7 +7,7 @@ import base64
 import json
 import os
 import websockets
-from src.shared.domain.services.speech_to_text import SpeechToText
+from src.voice.domain.services.speech_to_text import SpeechToText
 logger = logging.getLogger(__name__)
 
 class DeepgramSpeechToTextService(SpeechToText):

@@ -1,6 +1,6 @@
 from deepgram import DeepgramClient
 import base64
-from src.shared.domain.services.text_to_speech import TextToSpeech
+from src.voice.domain.services.text_to_speech import TextToSpeech
 
 class DeepgramTextToSpeechService(TextToSpeech):
     def __init__(

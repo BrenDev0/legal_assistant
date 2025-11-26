@@ -10,7 +10,7 @@ from src.llm.application.agents.general_legal_agent import GeneralLegalResearche
 
 from src.llm.dependencies.services import get_ebedding_service, get_llm_service, get_prompt_service
 from src.llm.dependencies.use_cases import get_search_for_context_use_case
-from src.shared.dependencies.use_cases import get_ws_streaming_use_case
+from src.web_sockets.dependencies.use_cases import get_ws_streaming_use_case
 
 logger = logging.getLogger(__name__)
 

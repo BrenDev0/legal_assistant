@@ -1,7 +1,7 @@
 from typing import Union
 from uuid import UUID
 import logging
-from src.shared.domain.services.text_to_speech import TextToSpeech
+from src.voice.domain.services.text_to_speech import TextToSpeech
 from src.web_sockets.transport import WebSocketTransportService
 logger = logging.getLogger(__name__)
 

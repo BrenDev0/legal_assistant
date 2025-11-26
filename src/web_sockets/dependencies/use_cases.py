@@ -2,8 +2,9 @@ import logging
 from src.shared.dependencies.container import Container
 from src.shared.domain.exceptions.dependencies import DependencyNotRegistered
 
-from src.shared.application.use_cases.ws_streaming import WsStreaming
-from src.shared.dependencies.services import get_text_to_speech_service, get_ws_transport_service
+from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
+from src.voice.dependencies.services import get_text_to_speech_service
+from src.web_sockets.dependencies.services import get_ws_transport_service
 logger = logging.getLogger(__name__)
 
 

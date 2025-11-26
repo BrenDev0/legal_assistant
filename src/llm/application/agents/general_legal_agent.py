@@ -5,7 +5,7 @@ from src.llm.domain.services.llm_service import LlmService
 from src.llm.domain.state import State
 from src.shared.utils.decorators.error_hanlder import error_handler
 from src.llm.application.use_cases.search_for_context import SearchForContext
-from src.shared.application.use_cases.ws_streaming import WsStreaming
+from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
 logger = logging.getLogger(__name__)
 
 class GeneralLegalResearcher:

@@ -2,8 +2,8 @@ from fastapi import APIRouter, WebSocket, status, WebSocketDisconnect, Query, De
 from uuid import UUID
 from src.app.middleware.ws_hmac_verification import verify_hmac_ws
 from src.web_sockets.connections import WebsocketConnectionsContainer
-from src.shared.application.use_cases.ws_streaming import WsStreaming
-from src.shared.dependencies.use_cases import get_ws_streaming_use_case
+from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
+from src.web_sockets.dependencies.use_cases import get_ws_streaming_use_case
 from src.shared.utils.greetings import get_greeting
 import logging
 logger = logging.getLogger(__name__)
