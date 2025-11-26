@@ -1,5 +1,5 @@
 from src.llm.application.services.prompt_service import PromptService
-from src.llm.state import State
+from src.llm.domain.state import State
 from src.llm.domain.models import ContextOrchestratorOutput
 from src.llm.domain.services.llm_service import LlmService
 from src.shared.utils.decorators.error_hanlder import error_handler

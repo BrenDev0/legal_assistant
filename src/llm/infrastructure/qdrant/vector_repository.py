@@ -4,11 +4,7 @@ from qdrant_client import QdrantClient
 from src.llm.domain.repositorties.vector_repository import VectorRepository
 from src.llm.domain.entities import SearchResult
 
-def get_qdrant_client():
-    return QdrantClient(
-        url=os.getenv("QDRANT_URL"),
-        api_key=os.getenv("QDRANT_API_KEY")
-    )
+
 
 class QdrantVectorRepository(VectorRepository):
     def __init__(self, client: QdrantClient):

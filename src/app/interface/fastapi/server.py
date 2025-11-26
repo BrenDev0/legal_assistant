@@ -1,13 +1,14 @@
-from src.app.setup.startup_event import startup_event
 from uuid import UUID
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.chats.interface.fastapi import interactions_routes
+from src.app.setup.startup_event import startup_event
+from src.llm.interface.fastapi import interactions_routes
 
-from src.chats.interface.fastapi import interactions_ws
+from src.llm.interface.fastapi import interactions_ws
 from src.web_sockets.connections import WebsocketConnectionsContainer
+from src.shared.dependencies.container import Container
 
 
 def create_fastapi_app():
@@ -35,9 +36,6 @@ def create_fastapi_app():
         """
         return {"status": "ok"}
 
-    app.include_router(interactions_routes.router)
-    app.include_router(interactions_ws.router)
-
     @app.get("/connections", tags=["Internal"])
     async def get_websocket_connections():
         connections = WebsocketConnectionsContainer._active_connections
@@ -59,5 +57,19 @@ def create_fastapi_app():
             "connection_ids": list(connections.keys()),
             "count": len(connections)
         }
+
+
+    @app.get("/instances", tags=["Internal"])
+    async def instances():
+        """
+        ## Gets instances registered in the dependencies ccontainer
+        """
+        return Container.get_instances()
+    
+
+
+    app.include_router(interactions_routes.router)
+    app.include_router(interactions_ws.router)
+
 
     return app

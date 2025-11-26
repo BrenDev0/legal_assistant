@@ -1,3 +1,4 @@
+import os
 import tiktoken
 from typing import List
 from openai import AsyncOpenAI
@@ -5,11 +6,11 @@ from openai import AsyncOpenAI
 from src.llm.domain.services.embedding_service import EmbeddingService
 
 class OpenAIEmbeddingService(EmbeddingService):
-    def __init__(self, api_key: str, model: str = "text-embedding-3-large"):
-        self._client = AsyncOpenAI(api_key=api_key)
+    def __init__(self, model: str = "text-embedding-3-large"):
+        self._client = AsyncOpenAI()
         self._model = model
         self._encoding = tiktoken.get_encoding("cl100k_base")
-    
+
     async def embed_query(self, query: str) -> List[float]:
         """Embed a single query"""
         result = await self._client.embeddings.create(

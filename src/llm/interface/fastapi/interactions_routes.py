@@ -1,9 +1,10 @@
 from  fastapi import APIRouter, Body, Depends, BackgroundTasks
-from  src.chats.domain.interactions_models import InteractionRequest
+from  src.llm.domain.schemas import InteractionRequest
 from src.app.domain.models.http_responses import CommonHttpResponse
 from src.app.middleware.hmac_verification import verify_hmac
-from src.llm.state import State
-from src.llm.graph import create_graph
+from src.llm.domain.state import State
+from src.llm.dependencies.services import get_workflow_service
+from src.llm.domain.services.workflow_service import WorkflowService
 
 
 router = APIRouter(
@@ -26,12 +27,18 @@ async def get_state(data: InteractionRequest = Body(...)):
 
     return state
 
+def create_workflow():
+    service: WorkflowService = get_workflow_service()
+    workflow = service.create_workflow()
+
+    return workflow
+
 @router.post("/internal/interact", status_code=202, response_model=CommonHttpResponse)
 async def secure_interact(
     background_tasks: BackgroundTasks,
     _: None = Depends(verify_hmac),
     state: State = Depends(get_state),
-    graph = Depends(create_graph)
+    graph = Depends(create_workflow)
 ):
     
     background_tasks.add_task(graph.ainvoke, state)
