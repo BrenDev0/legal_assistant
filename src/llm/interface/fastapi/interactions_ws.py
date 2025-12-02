@@ -20,7 +20,6 @@ async def websocket_interact(
     voice: bool = Query(False, description="Enable voice mode"),
     stream: WsStreaming = Depends(get_ws_streaming_use_case)
 ):
-    await websocket.accept()
     params = websocket.query_params
     signature = params.get("x-signature")
     payload = params.get("x-payload")
@@ -29,6 +28,8 @@ async def websocket_interact(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    await websocket.accept()
+    
     WebsocketConnectionsContainer.register_connection(chat_id, websocket)
     
     logger.info(f'Websocket connection: {chat_id} opened.')
