@@ -1,8 +1,12 @@
 import logging
+from typing import Union
+from uuid import UUID
+from expertise_chats.broker import Producer, InteractionEvent
+from expertise_chats.schemas.ws import WsPayload
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.services.llm_service import LlmService
 from src.llm.domain.state import State
-from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
+from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.application.use_cases.search_for_context import SearchForContext
 from src.shared.utils.decorators.error_hanlder import error_handler
 logger = logging.getLogger(__name__)
@@ -13,15 +17,19 @@ class CompanyLegalResearcher:
         self, 
         prompt_service: PromptService, 
         llm_service: LlmService,
-        streaming: WsStreaming,
+        producer: Producer,
         search_for_context: SearchForContext
     ):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
-        self.__streaming = streaming
+        self.__producer = producer
         self.__search_for_context = search_for_context
 
-    async def __get_prompt(self, state: State):
+    async def __get_prompt(
+        self,  
+        input: str,
+        company_id: Union[str, UUID]
+    ):
         system_message = """
         You are a Company Legal Document Specialist. Analyze the user's query using the provided company documents and policies.
 
@@ -41,16 +49,16 @@ class CompanyLegalResearcher:
 
         If there is no context found you will state that you've found no company documnets to analyze
         """
-        collection_name = f"{state['company_id']}_company_docs"
+        collection_name = f"{company_id}_company_docs"
 
         context = await self.__search_for_context.execute(
-            input=state["input"],
+            input=input,
             namespace=collection_name
         )
 
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            input=state["input"],
+            input=input,
             context=context
         )
 
@@ -58,7 +66,13 @@ class CompanyLegalResearcher:
 
     @error_handler(module=__MODULE)
     async def interact(self, state: State):
-        prompt = await self.__get_prompt(state)
+        event = InteractionEvent(**state["event"])
+        event_data = IncommingMessageEvent(**event.event_data)
+        prompt = await self.__get_prompt(
+            company_id=event.company_id,
+            input=event_data.chat_history[0]
+        )
+        
         
         if not state["context_orchestrator_response"].general_law:
             chunks = []
@@ -68,42 +82,66 @@ class CompanyLegalResearcher:
                 temperature=0.5
             ):
                 chunks.append(chunk)
-                if state.get("voice"):
+                if event.voice:
                     sentence += chunk
                     # Check for sentence-ending punctuation
                     if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                        await self.__streaming.execute(
-                            ws_connection_id=state["chat_id"],
-                            text=sentence.strip(),
-                            voice=True
+                        ws_payload = WsPayload(
+                            type="AUDIO",
+                            data=sentence.strip()
                         )
+
+                        event.event_data = ws_payload.model_dump()
+
+                        self.__producer.publish(
+                            routing_key="streaming.audio.outbound.send",
+                            event_message=event
+                        )
+
                         sentence = ""
                 else:
-                    try:
-                        await self.__streaming.execute(
-                            ws_connection_id=state["chat_id"],
-                            text=chunk,
-                            voice=False
-                        )
-                    except Exception as e:
-                        logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
+                    ws_payload = WsPayload(
+                        type="TEXT",
+                        data=chunk
+                    )
+
+                    event.event_data = ws_payload.model_dump()
+
+                    self.__producer.publish(
+                        routing_key="streaming.general.outbound.send",
+                        event_message=event
+                    )
+
             # After streaming all chunks, send any remaining text for voice
-            if state.get("voice") and sentence.strip():
-                try:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=sentence.strip(),
-                        voice=True
-                    )
-                
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text="END STREAM",
-                        voice=True,
-                        type="END"
-                    )
-                except Exception as e:
-                    logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
+            if event.voice and sentence.strip():
+                ws_payload = WsPayload(
+                    type="AUDIO",
+                    data=sentence.strip()
+                )
+
+                event.event_data = ws_payload.model_dump()
+
+                self.__producer.publish(
+                    routing_key="streaming.audio.outbound.send",
+                    event_message=event
+                )
+
+                ws_payload.type = "TEXT"
+                ws_payload.data = chunk
+
+                event.event_data = ws_payload.model_dump()
+
+                self.__producer.publish(
+                    routing_key="streaming.general.outbound.send",
+                    event_message=event
+                )
+            
+            self.__producer.publish(
+                routing_key="messages.outgoing.send",
+                event_message={
+                    "llm_response": "".join(chunks)
+                }
+            )
             return "".join(chunks)
         
         response = await self.__llm_service.invoke(
@@ -111,4 +149,10 @@ class CompanyLegalResearcher:
             temperature=0.0
         )
 
+        self.__producer.publish(
+            routing_key="messages.outgoing.send",
+            event_message={
+                "llm_response": response
+            }
+        )
         return response

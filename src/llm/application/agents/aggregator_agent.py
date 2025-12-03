@@ -1,9 +1,11 @@
 import logging
+from expertise_chats.broker import Producer, InteractionEvent
+from expertise_chats.schemas.ws import WsPayload
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.services.llm_service import LlmService
 from src.shared.utils.decorators.error_hanlder import error_handler
 from src.llm.domain.state import State
-from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
+from src.llm.events.scehmas import IncommingMessageEvent
 
 logger = logging.getLogger(__name__)
 
@@ -13,14 +15,18 @@ class ResearchAggregator:
         self, 
         prompt_service: PromptService, 
         llm_service: LlmService, 
-        streaming: WsStreaming
+        producer: Producer
     ):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
-        self.__streaming = streaming
+        self.__producer = producer
 
     @error_handler(module=__MODULE)
-    def __get_prompt(self, state: State):  
+    def __get_prompt(
+        self, 
+        state: State,
+        chat_history
+    ):  
         context_parts = []
         
         if state.get('general_legal_response'):
@@ -50,8 +56,8 @@ class ResearchAggregator:
 
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            chat_history=state["chat_history"],
-            input=state["input"]
+            chat_history=chat_history,
+            input=chat_history[0]
         )
 
         return prompt
@@ -61,13 +67,18 @@ class ResearchAggregator:
         # Do not call agent unless  multiple context needs to  be combined
         general = state.get("general_legal_response", None)
         company = state.get("company_legal_response", None)
+        event = InteractionEvent(**state["event"])
+        event_data = IncommingMessageEvent(**event.event_data)
         
         if general and not company:
             return general.strip()
         if company and not general:
             return company.strip()
             
-        prompt = self.__get_prompt(state)
+        prompt = self.__get_prompt(
+            state=state,
+            chat_history=event_data.chat_history
+        )
         
         chunks = []
         sentence = "" 
@@ -76,42 +87,67 @@ class ResearchAggregator:
             temperature=0.5
         ):
             chunks.append(chunk)
-            if state.get("voice"):
+            if event.voice:
                 sentence += chunk
                 # Check for sentence-ending punctuation
                 if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=sentence.strip(),
-                        voice=True
+                    ws_payload = WsPayload(
+                        type="AUIDO",
+                        data=sentence.strip()
                     )
+
+                    event.event_data = ws_payload.model_dump()
+
+                    self.__producer.publish(
+                        routing_key="streaming.audio.outbound.send",
+                        event_message=event
+                    )
+
                     sentence = ""
             else:
-                try:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=chunk,
-                        voice=False
-                    )
-                except Exception as e:
-                    logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
+                ws_payload = WsPayload(
+                    type="TEXT",
+                    data=chunk
+                )
+
+                event.event_data = ws_payload
+
+                self.__producer.publish(
+                    routing_key="streaming.general.outbound.send",
+                    event_message=event
+                )
+                    
         # After streaming all chunks, send any remaining text for voice
-        if state.get("voice") and sentence.strip():
-            try:
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text=sentence.strip(),
-                    voice=True
-                )
-            
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text="END STREAM",
-                    voice=True,
-                    type="END"
-                )
-            except Exception as e:
-                logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
+        if event.voice and sentence.strip():
+            ws_payload = WsPayload(
+                type="AUIDO",
+                data=sentence.strip()
+            )
+
+            event.event_data = ws_payload.model_dump()
+
+            self.__producer.publish(
+                routing_key="streaming.audio.outbound.send",
+                event_message=event
+            )
+
+            ws_payload.type = "TEXT"
+            ws_payload.data = chunk
+
+            event.event_data = ws_payload.model_dump()
+
+            self.__producer.publish(
+                routing_key="streaming.general.outbound.send",
+                event_message=event
+            )
+        
+        self.__producer.publish(
+            routing_key="messages.outgoing.send",
+            event_message={
+                "llm_response": "".join(chunks)
+            }
+        )
+        
         return "".join(chunks)
 
 

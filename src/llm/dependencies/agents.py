@@ -8,9 +8,9 @@ from src.llm.application.agents.context_orchestrator_agent import ContextOrchest
 from src.llm.application.agents.fallback_agent import FallBackAgent
 from src.llm.application.agents.general_legal_agent import GeneralLegalResearcher
 
-from src.llm.dependencies.services import get_ebedding_service, get_llm_service, get_prompt_service
+from src.llm.dependencies.services import  get_llm_service, get_prompt_service
 from src.llm.dependencies.use_cases import get_search_for_context_use_case
-from src.web_sockets.dependencies.use_cases import get_ws_streaming_use_case
+from src.llm.dependencies.producers import get_producer
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,11 @@ def get_aggregator_agent() -> ResearchAggregator:
         agent = ResearchAggregator(
             prompt_service=get_prompt_service(),
             llm_service=get_llm_service(),
-            streaming=get_ws_streaming_use_case()
+            producer=get_producer()
         )
 
         Container.register(instance_key, agent)
         logger.info(f"{instance_key} registered")
-        logger.debug("THIS IS A DEBUG MESSAGE:::::::::::::")
     
     return agent
 
@@ -42,7 +41,7 @@ def get_company_legal_agent() -> CompanyLegalResearcher:
         agent = CompanyLegalResearcher(
             prompt_service=get_prompt_service(),
             llm_service=get_llm_service(),
-            streaming=get_ws_streaming_use_case(),
+            producer=get_producer(),
             search_for_context=get_search_for_context_use_case()
         )
 
@@ -76,7 +75,7 @@ def get_general_legal_agent() -> GeneralLegalResearcher:
         agent = GeneralLegalResearcher(
             prompt_service=get_prompt_service(),
             llm_service=get_llm_service(),
-            streaming=get_ws_streaming_use_case(),
+            producer=get_producer(),
             search_for_context=get_search_for_context_use_case()
         )
 
@@ -94,7 +93,7 @@ def get_fallback_agent() -> FallBackAgent:
         agent = FallBackAgent(
             prompt_service=get_prompt_service(),
             llm_service=get_llm_service(),
-            streaming=get_ws_streaming_use_case()
+            producer=get_producer()
         )
 
         Container.register(instance_key, agent)

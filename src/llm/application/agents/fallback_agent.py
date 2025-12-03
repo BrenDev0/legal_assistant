@@ -1,7 +1,9 @@
 import logging
+from expertise_chats.broker import Producer, InteractionEvent
+from expertise_chats.schemas.ws import WsPayload
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.services.llm_service import LlmService
-from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
+from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.domain.state import State
 from src.shared.utils.decorators.error_hanlder import error_handler
 logger = logging.getLogger(__name__)
@@ -12,16 +14,16 @@ class FallBackAgent:
         self, 
         prompt_service: PromptService, 
         llm_service: LlmService,
-        streaming: WsStreaming
+        producer: Producer
     ):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
-        self.__streaming = streaming
+        self.__producer = producer
 
     @error_handler(module=__MODULE)
     def __get_prompt(
         self,
-        state: State
+        input: str
     ):
         system_message = """
         You are a legal assistant fallback agent.
@@ -41,7 +43,7 @@ class FallBackAgent:
 
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            input=state["input"]
+            input=input
         )
 
         return prompt
@@ -51,7 +53,10 @@ class FallBackAgent:
         self,
         state: State
     ): 
-        prompt = self.__get_prompt(state=state)
+        event = InteractionEvent(**state["event"])
+        event_data = IncommingMessageEvent(**event.event_data)
+        prompt = self.__get_prompt(input=event_data.chat_history[0])
+        
 
         chunks = []
         sentence = ""
@@ -61,43 +66,67 @@ class FallBackAgent:
         ):
             chunks.append(chunk)
             
-            if state.get("voice"):
+            if event.voice:
                 sentence += chunk
                 # Check for sentence-ending punctuation
                 if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=sentence.strip(),
-                        voice=True
+                    ws_payload = WsPayload(
+                        type="AUIDO",
+                        data=sentence.strip()
                     )
+
+                    event.event_data = ws_payload.model_dump()
+
+                    self.__producer.publish(
+                        routing_key="streaming.audio.outbound.send",
+                        event_message=event
+                    )
+
                     sentence = ""
             else:
-                try:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=chunk,
-                        voice=False
-                    )
-                except Exception as e:
-                    logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
+                ws_payload = WsPayload(
+                    type="TEXT",
+                    data=chunk
+                )
 
+                event.event_data = ws_payload
+
+                self.__producer.publish(
+                    routing_key="streaming.general.outbound.send",
+                    event_message=event
+                )
+                
         # After streaming all chunks, send any remaining text for voice
-        if state.get("voice") and sentence.strip():
-            try:
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text=sentence.strip(),
-                    voice=True
-                )
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text="END STREAM",
-                    voice=True,
-                    type="END"
-                )
-            except Exception as e:
-                logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
-            
+        if event.voice and sentence.strip():
+            ws_payload = WsPayload(
+                type="AUIDO",
+                data=sentence.strip()
+            )
+
+            event.event_data = ws_payload.model_dump()
+
+            self.__producer.publish(
+                routing_key="streaming.audio.outbound.send",
+                event_message=event
+            )
+
+            ws_payload.type = "TEXT"
+            ws_payload.data = chunk
+
+            event.event_data = ws_payload.model_dump()
+
+            self.__producer.publish(
+                routing_key="streaming.general.outbound.send",
+                event_message=event
+            )
+
+
+        self.__producer.publish(
+            routing_key="messages.outgoing.send",
+            event_message={
+                "llm_response": "".join(chunks)
+            }
+        )    
         return "".join(chunks)
         
         

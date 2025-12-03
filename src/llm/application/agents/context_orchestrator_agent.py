@@ -1,3 +1,5 @@
+from expertise_chats.broker import InteractionEvent
+from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.state import State
 from src.llm.domain.models import ContextOrchestratorOutput
@@ -11,7 +13,10 @@ class ContextOrchestrator:
         self.__llm_service = llm_service
 
     @error_handler(module=__MODULE)
-    def __get_prompt(self, state: State):
+    def __get_prompt(
+        self, 
+        chat_history
+    ):
         system_message = """
         You are a legal context orchestrator agent. Analyze the user's query to determine what information is needed.
 
@@ -38,15 +43,19 @@ class ContextOrchestrator:
         """
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            chat_history=state["chat_history"],
-            input=state["input"]
+            chat_history=chat_history,
+            input=chat_history[0]
         )
 
         return prompt
 
     @error_handler(module=__MODULE)
-    async def interact(self, state: State) -> ContextOrchestratorOutput:   
-        prompt = self.__get_prompt(state)
+    async def interact(self, state: State) -> ContextOrchestratorOutput: 
+        event = InteractionEvent(**state["event"])
+        event_data = IncommingMessageEvent(**event.event_data)  
+        prompt = self.__get_prompt(
+            chat_history=event_data.chat_history
+        )
 
         response = await self.__llm_service.invoke_structured(
             prompt=prompt,
