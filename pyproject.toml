@@ -5,22 +5,15 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "asgi-lifespan>=2.1.0",
-    "deepgram-sdk>=5.0.0",
     "expertise-chats",
-    "fastapi[standard]>=0.117.1",
     "langchain>=0.3.27",
     "langchain-community>=0.3.27",
     "langchain-openai>=0.3.29",
     "langgraph>=0.6.4",
     "openai>=1.99.7",
     "pydantic>=2.11.7",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
     "qdrant-client>=1.15.1",
-    "redis>=6.4.0",
-    "unstructured>=0.18.11",
-    "uvicorn[standard]>=0.35.0",
+    "unstructured>=0.18.11"
 ]
 
 [tool.uv.sources]
