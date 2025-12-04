@@ -12,6 +12,7 @@ def startup_event():
 
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("pika").setLevel(logging.WARNING)
 
     initialize_llm_broker()
 

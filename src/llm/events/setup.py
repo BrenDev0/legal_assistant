@@ -16,7 +16,7 @@ def __setup_llm_incomming_consumer():
         handler=get_incomming_message_handler()
     )
     
-    thread = threading.Thread(target=consumer.start, daemon=True)
+    thread = threading.Thread(target=consumer.start, daemon=False)
     thread.start()
     logger.info("legal assistant inbound consumer listening")
 

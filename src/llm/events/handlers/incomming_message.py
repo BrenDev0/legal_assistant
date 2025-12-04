@@ -19,7 +19,7 @@ class IncommingMessageHandler(AsyncEventHandlerBase):
         logger.debug(f"legal assistant history handler received request ::: {payload}")
 
         try:
-            event = InteractionEvent(payload)
+            event = InteractionEvent(**payload)
             
             state = State(
                 context_orchestrator_response=None,

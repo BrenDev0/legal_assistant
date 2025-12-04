@@ -66,11 +66,11 @@ class CompanyLegalResearcher:
 
     async def interact(self, state: State):
         try:
-            event = InteractionEvent(**state["event"])
+            event = state["event"]
             event_data = IncommingMessageEvent(**event.event_data)
             prompt = await self.__get_prompt(
                 company_id=event.company_id,
-                input=event_data.chat_history[0]
+                input=event_data.chat_history[0].text
             )
             
             

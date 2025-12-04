@@ -17,4 +17,3 @@ class Message(BaseModel):
     text: Optional[str] = None
     json_data: Optional[Any] = None
     message_type: str
-    created_at: Optional[datetime] = None

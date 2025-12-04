@@ -54,9 +54,9 @@ class FallBackAgent:
         state: State
     ): 
         try:
-            event = InteractionEvent(**state["event"])
+            event = state["event"]
             event_data = IncommingMessageEvent(**event.event_data)
-            prompt = self.__get_prompt(input=event_data.chat_history[0])
+            prompt = self.__get_prompt(input=event_data.chat_history[0].text)
             
 
             chunks = []

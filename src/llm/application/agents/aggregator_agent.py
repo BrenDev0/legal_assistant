@@ -1,11 +1,13 @@
 import logging
-from expertise_chats.broker import Producer, InteractionEvent
+from typing import List
+from expertise_chats.broker import Producer
 from expertise_chats.schemas.ws import WsPayload
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.services.llm_service import LlmService
 from src.llm.domain.state import State
 from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.utils.publish_output import publish_llm_output
+from src.llm.domain.entities import Message
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class ResearchAggregator:
     def __get_prompt(
         self, 
         state: State,
-        chat_history
+        chat_history: List[Message]
     ):  
         context_parts = []
         
@@ -55,7 +57,7 @@ class ResearchAggregator:
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
             chat_history=chat_history,
-            input=chat_history[0]
+            input=chat_history[0].text
         )
 
         return prompt
@@ -65,7 +67,7 @@ class ResearchAggregator:
             # Do not call agent unless  multiple context needs to  be combined
             general = state.get("general_legal_response", None)
             company = state.get("company_legal_response", None)
-            event = InteractionEvent(**state["event"])
+            event = state["event"]
             event_data = IncommingMessageEvent(**event.event_data)
             
             if general and not company:
