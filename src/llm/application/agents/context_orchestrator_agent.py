@@ -1,12 +1,11 @@
 import logging
 from expertise_chats.broker import InteractionEvent
-from expertise_chats.errors.error_handler import handle_error
 from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.state import State
 from src.llm.domain.models import ContextOrchestratorOutput
 from src.llm.domain.services.llm_service import LlmService
-from src.llm.dependencies.producers import get_producer
+
 logger = logging.getLogger(__name__)
 
 class ContextOrchestrator:
@@ -68,8 +67,4 @@ class ContextOrchestrator:
             return response
         except Exception as e:
             logger.error(str(e))
-            handle_error(
-                event=event,
-                producer=get_producer(),
-                server_error=True
-            )
+            raise

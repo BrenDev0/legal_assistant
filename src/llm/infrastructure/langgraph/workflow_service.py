@@ -108,7 +108,10 @@ class LanggraphWorkflowService(WorkflowService):
     
     async def invoke_workflow(self, state):
         graph: CompiledStateGraph = self.create_workflow()
-
-        final_state = await graph.ainvoke(state)
-
-        return final_state
+        try:
+            final_state = await graph.ainvoke(state)
+    
+            return final_state
+        
+        except Exception as e:
+            raise

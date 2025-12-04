@@ -1,11 +1,11 @@
 import logging
 from expertise_chats.broker import Producer, InteractionEvent
-from expertise_chats.errors.error_handler import handle_error
 from expertise_chats.schemas.ws import WsPayload
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.services.llm_service import LlmService
 from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.domain.state import State
+from src.llm.utils.publish_output import publish_llm_output
 
 logger = logging.getLogger(__name__)
 
@@ -76,13 +76,10 @@ class FallBackAgent:
                             data=sentence.strip()
                         )
 
-                        event.event_data = ws_payload.model_dump()
-
-                        self.__producer.publish(
-                            routing_key="streaming.audio.outbound.send",
-                            event_message=event
+                        publish_llm_output(
+                            event=event,
+                            payload=ws_payload
                         )
-
                         sentence = ""
                 else:
                     ws_payload = WsPayload(
@@ -90,13 +87,11 @@ class FallBackAgent:
                         data=chunk
                     )
 
-                    event.event_data = ws_payload
-
-                    self.__producer.publish(
-                        routing_key="streaming.general.outbound.send",
-                        event_message=event
+                    publish_llm_output(
+                        event=event,
+                        payload=ws_payload
                     )
-                    
+                        
             # After streaming all chunks, send any remaining text for voice
             if event.voice and sentence.strip():
                 ws_payload = WsPayload(
@@ -104,21 +99,17 @@ class FallBackAgent:
                     data=sentence.strip()
                 )
 
-                event.event_data = ws_payload.model_dump()
-
-                self.__producer.publish(
-                    routing_key="streaming.audio.outbound.send",
-                    event_message=event
+                publish_llm_output(
+                    event=event,
+                    payload=ws_payload
                 )
 
                 ws_payload.type = "TEXT"
                 ws_payload.data = chunk
 
-                event.event_data = ws_payload.model_dump()
-
-                self.__producer.publish(
-                    routing_key="streaming.general.outbound.send",
-                    event_message=event
+                publish_llm_output(
+                    event=event,
+                    payload=ws_payload
                 )
 
 
@@ -132,10 +123,5 @@ class FallBackAgent:
         
         except Exception as e:
             logger.error(str(e))
-            handle_error(
-                event=event,
-                producer=self.__producer,
-                server_error=True
-            )
-        
+            raise
         
