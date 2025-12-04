@@ -1,7 +1,7 @@
 import logging
 import os 
-from src.shared.dependencies.container import Container
-from src.shared.domain.exceptions.dependencies import DependencyNotRegistered
+from expertise_chats.dependencies.container import Container
+from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
 from src.llm.domain.repositorties.vector_repository import VectorRepository
 

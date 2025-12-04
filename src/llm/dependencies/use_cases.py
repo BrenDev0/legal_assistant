@@ -1,6 +1,6 @@
 import logging
-from src.shared.dependencies.container import Container
-from src.shared.domain.exceptions.dependencies import DependencyNotRegistered
+from expertise_chats.dependencies.container import Container
+from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
 from src.llm.dependencies.services import get_ebedding_service
 from src.llm.dependencies.repositories import get_vector_repository

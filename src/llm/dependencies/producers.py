@@ -1,7 +1,7 @@
 import logging
 import os
-from src.shared.dependencies.container import Container
-from src.shared.domain.exceptions.dependencies import DependencyNotRegistered
+from expertise_chats.dependencies.container import Container
+from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
 from expertise_chats.broker import Producer
 logger = logging.getLogger(__name__)

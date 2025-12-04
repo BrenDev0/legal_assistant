@@ -1,6 +1,6 @@
 import logging
-from src.shared.dependencies.container import Container
-from src.shared.domain.exceptions.dependencies import DependencyNotRegistered
+from expertise_chats.dependencies.container import Container
+from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
 from src.llm.application.agents.aggregator_agent import ResearchAggregator
 from src.llm.application.agents.company_research_agent import CompanyLegalResearcher

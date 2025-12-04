@@ -1,18 +1,20 @@
+import logging
 from expertise_chats.broker import InteractionEvent
+from expertise_chats.errors.error_handler import handle_error
 from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.state import State
 from src.llm.domain.models import ContextOrchestratorOutput
 from src.llm.domain.services.llm_service import LlmService
-from src.shared.utils.decorators.error_hanlder import error_handler
+from src.llm.dependencies.producers import get_producer
+logger = logging.getLogger(__name__)
 
 class ContextOrchestrator:
-    __MODULE = "context_orchestrator.agent"
     def __init__(self, prompt_service: PromptService, llm_service: LlmService):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
 
-    @error_handler(module=__MODULE)
+   
     def __get_prompt(
         self, 
         chat_history
@@ -49,18 +51,25 @@ class ContextOrchestrator:
 
         return prompt
 
-    @error_handler(module=__MODULE)
     async def interact(self, state: State) -> ContextOrchestratorOutput: 
-        event = InteractionEvent(**state["event"])
-        event_data = IncommingMessageEvent(**event.event_data)  
-        prompt = self.__get_prompt(
-            chat_history=event_data.chat_history
-        )
+        try: 
+            event = InteractionEvent(**state["event"])
+            event_data = IncommingMessageEvent(**event.event_data)  
+            prompt = self.__get_prompt(
+                chat_history=event_data.chat_history
+            )
 
-        response = await self.__llm_service.invoke_structured(
-            prompt=prompt,
-            response_model=ContextOrchestratorOutput,
-            temperature=0.0
-        )
+            response = await self.__llm_service.invoke_structured(
+                prompt=prompt,
+                response_model=ContextOrchestratorOutput,
+                temperature=0.0
+            )
 
-        return response
+            return response
+        except Exception as e:
+            logger.error(str(e))
+            handle_error(
+                event=event,
+                producer=get_producer(),
+                server_error=True
+            )

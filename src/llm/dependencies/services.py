@@ -1,6 +1,6 @@
 import logging
-from src.shared.dependencies.container import Container
-from src.shared.domain.exceptions.dependencies import DependencyNotRegistered
+from expertise_chats.dependencies.container import Container
+from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
 from src.llm.domain.services.embedding_service import EmbeddingService
 from src.llm.domain.services.llm_service import LlmService
