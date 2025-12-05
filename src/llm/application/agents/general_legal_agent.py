@@ -63,7 +63,7 @@ class GeneralLegalResearcher:
             if not state["context_orchestrator_response"].company_law:
                 response = await self.__stream_llm_output.execute(
                     prompt=prompt,
-                    event=event,
+                    event=event.model_copy(),
                     temperature=0.0,
                 )
 
@@ -72,13 +72,6 @@ class GeneralLegalResearcher:
             response = await self.__llm_service.invoke(
                 prompt=prompt,
                 temperature=0.0
-            )
-
-            self.__producer.publish(
-                routing_key="messages.outgoing.send",
-                event_message={
-                    "llm_response": response
-                }
             )
 
             return response

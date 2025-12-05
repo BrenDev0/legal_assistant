@@ -30,16 +30,20 @@ class IncommingMessageHandler(AsyncEventHandlerBase):
                 final_response="",
                 event=event
             )
+
             
             final_state: State = await self.__workflow_service.invoke_workflow(
                 state=state
             )
-            
-            self.__producer.publish(
-                routing_key="messages.outgoing.send",
-                event_message={
+
+            event.event_data = {
                     "llm_response": final_state["final_response"]
                 }
+            
+            logger.debug(f"Publishing to messages.outgoing.send")
+            self.__producer.publish(
+                routing_key="messages.outgoing.send",
+                event_message=event
             )
         except Exception as e: 
             logger.error(str(e))

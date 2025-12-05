@@ -60,7 +60,7 @@ class ResearchAggregator:
             # Do not call agent unless  multiple context needs to  be combined
             general = state.get("general_legal_response", None)
             company = state.get("company_legal_response", None)
-            event = state["event"]
+            event = state["event"]        
             event_data = IncommingMessageEvent(**event.event_data)
             
             if general and not company:
@@ -75,7 +75,7 @@ class ResearchAggregator:
 
             response = await self.__stream_llm_output.execute(
                 prompt=prompt,
-                event=event,
+                event=event.model_copy(),
                 temperature=0.5
             )
             

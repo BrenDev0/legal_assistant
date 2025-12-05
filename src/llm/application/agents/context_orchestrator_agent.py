@@ -51,8 +51,9 @@ class ContextOrchestrator:
 
     async def interact(self, state: State) -> ContextOrchestratorOutput: 
         try: 
-            event = state["event"]
+            event = state["event"]  
             event_data = IncommingMessageEvent(**event.event_data)  
+            
             prompt = self.__get_prompt(
                 chat_history=event_data.chat_history
             )

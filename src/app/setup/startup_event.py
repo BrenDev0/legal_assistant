@@ -13,6 +13,9 @@ def startup_event():
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("pika").setLevel(logging.WARNING)
+    logging.getLogger("langsmith.client").setLevel(logging.WARNING)
+    logging.getLogger("openai._base_client").setLevel(logging.WARNING)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
     initialize_llm_broker()
 

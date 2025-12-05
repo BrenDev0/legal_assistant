@@ -49,14 +49,14 @@ class FallBackAgent:
         state: State
     ): 
         try:
-            event = state["event"]
+            event = state["event"]        
             event_data = IncommingMessageEvent(**event.event_data)
             prompt = self.__get_prompt(input=event_data.chat_history[0].text)
             
 
             response = await self.__stream_llm_output.execute(
                 prompt=prompt,
-                event=event,
+                event=event.model_copy(),
                 temperature=0.5
             )
 

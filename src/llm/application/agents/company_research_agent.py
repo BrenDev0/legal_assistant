@@ -75,7 +75,7 @@ class CompanyLegalResearcher:
             if not state["context_orchestrator_response"].general_law:
                 response = await self.__stream_llm_output.execute(
                     prompt=prompt,
-                    event=event,
+                    event=event.model_copy(),
                     temperature=0.0
                 )
 
