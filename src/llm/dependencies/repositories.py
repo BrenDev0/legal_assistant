@@ -5,15 +5,9 @@ from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
 from src.llm.domain.repositorties.vector_repository import VectorRepository
 
-from src.llm.infrastructure.qdrant.vector_repository import QdrantClient, QdrantVectorRepository
+from src.llm.infrastructure.qdrant.vector_repository import QdrantVectorRepository
 logger = logging.getLogger(__name__)
 
-
-def get_qdrant_client():
-    return QdrantClient(
-        url=os.getenv("QDRANT_URL"),
-        api_key=os.getenv("QDRANT_API_KEY")
-    )
 
 def get_vector_repository() -> VectorRepository:
     try:
@@ -21,10 +15,7 @@ def get_vector_repository() -> VectorRepository:
         repository = Container.resolve(instance_key)
 
     except DependencyNotRegistered:
-        client = get_qdrant_client()
-        repository = QdrantVectorRepository(
-            client=client
-        )
+        repository = QdrantVectorRepository()
 
         Container.register(instance_key, repository)
     

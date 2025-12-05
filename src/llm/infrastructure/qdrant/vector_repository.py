@@ -7,8 +7,11 @@ from src.llm.domain.entities import SearchResult
 
 
 class QdrantVectorRepository(VectorRepository):
-    def __init__(self, client: QdrantClient):
-        self.client = client
+    def __init__(self):
+        self.client = QdrantClient(
+            url=os.getenv("QDRANT_URL"),
+            api_key=os.getenv("QDRANT_API_KEY")
+        )
 
     async def similarity_search(
         self, 
@@ -16,7 +19,7 @@ class QdrantVectorRepository(VectorRepository):
         query_vector: List[float], 
         top_k: int = 4
     ) -> List[SearchResult]:
-        results = self.client.search(
+        results = self.client.search_points(
             collection_name=namespace,
             query_vector=query_vector,
             limit=top_k,
