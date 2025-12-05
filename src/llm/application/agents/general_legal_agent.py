@@ -1,8 +1,7 @@
 import os
 import logging
-from expertise_chats.broker import Producer
-from expertise_chats.schemas.ws import WsPayload
-from expertise_chats.llm import MessageModel, StreamLlmOutput, SearchForContext, LlmServiceAbstract, PromptService
+
+from expertise_chats.llm import StreamLlmOutput, SearchForContext, LlmServiceAbstract, PromptService
 
 from src.llm.domain.state import State
 from src.llm.events.scehmas import IncommingMessageEvent
@@ -14,7 +13,6 @@ class GeneralLegalResearcher:
     def __init__(
         self, 
         stream_llm_output: StreamLlmOutput,
-        producer: Producer,
         search_for_context: SearchForContext,
         llm_service: LlmServiceAbstract,
         prompt_service: PromptService
@@ -23,7 +21,6 @@ class GeneralLegalResearcher:
         self.__llm_service = llm_service
         self.__prompt_service = prompt_service
         self.__stream_llm_output = stream_llm_output
-        self.__producer = producer
         self.__search_for_context = search_for_context
 
     async def __get_prompt(self, input: str):

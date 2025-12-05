@@ -304,7 +304,7 @@ wheels = [
 [[package]]
 name = "expertise-chats"
 version = "0.1.0"
-source = { git = "https://github.com/BrenDev0/expertise_chats_shared.git#4c975f226baa561983590a4ffa667f77611392d3" }
+source = { git = "https://github.com/BrenDev0/expertise_chats_shared.git#2e06518e955f69ad6bc1823491692d197744c824" }
 dependencies = [
     { name = "langchain-openai" },
     { name = "pika" },

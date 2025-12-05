@@ -1,7 +1,6 @@
 import logging
 from typing import Union
 from uuid import UUID
-from expertise_chats.broker import Producer
 from expertise_chats.llm import SearchForContext, StreamLlmOutput, LlmServiceAbstract, PromptService
 
 
@@ -16,13 +15,11 @@ class CompanyLegalResearcher:
         self, 
         prompt_service: PromptService, 
         llm_service: LlmServiceAbstract,
-        producer: Producer,
         search_for_context: SearchForContext,
         stream_llm_output: StreamLlmOutput
     ):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
-        self.__producer = producer
         self.__search_for_context = search_for_context
         self.__stream_llm_output = stream_llm_output
 
@@ -89,12 +86,6 @@ class CompanyLegalResearcher:
                 temperature=0.0
             )
 
-            self.__producer.publish(
-                routing_key="messages.outgoing.send",
-                event_message={
-                    "llm_response": response
-                }
-            )
             return response
         
         except Exception as e:

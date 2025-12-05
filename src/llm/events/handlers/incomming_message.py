@@ -1,19 +1,21 @@
 import logging
 from typing import Any, Dict
-from expertise_chats.broker import AsyncEventHandlerBase, InteractionEvent
+from expertise_chats.broker import AsyncEventHandlerBase, InteractionEvent, Producer
 from expertise_chats.llm import WorkflowServiceAbsract
 from expertise_chats.errors.error_handler import handle_error
 from src.llm.domain.state import State
-from src.llm.dependencies.producers import get_producer
+
 
 logger = logging.getLogger(__name__)
 
 class IncommingMessageHandler(AsyncEventHandlerBase):
     def __init__(
         self,
-        workflow_service: WorkflowServiceAbsract
+        workflow_service: WorkflowServiceAbsract,
+        producer: Producer
     ):
         self.__workflow_service = workflow_service
+        self.__producer = producer
 
     async def handle(self, payload: Dict[str, Any]):
         logger.debug(f"legal assistant history handler received request ::: {payload}")
@@ -29,14 +31,21 @@ class IncommingMessageHandler(AsyncEventHandlerBase):
                 event=event
             )
             
-            await self.__workflow_service.invoke_workflow(
+            final_state: State = await self.__workflow_service.invoke_workflow(
                 state=state
+            )
+            
+            self.__producer.publish(
+                routing_key="messages.outgoing.send",
+                event_message={
+                    "llm_response": final_state["final_response"]
+                }
             )
         except Exception as e: 
             logger.error(str(e))
             handle_error(
                 event=event,
-                producer=get_producer(),
+                producer=self.__producer,
                 server_error=True
             )
 

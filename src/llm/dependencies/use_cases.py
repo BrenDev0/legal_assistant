@@ -64,7 +64,6 @@ def get_stream_llm_output_use_case() -> StreamLlmOutput:
 
     except DependencyNotRegistered:
         use_case = StreamLlmOutput(
-            producer=get_producer(),
             llm_service=get_llm_service(),
             chunk_hander=get_hanlde_chunk_use_case(),
             end_audio_stream=get_end_audio_stream_use_case()
