@@ -1,3 +1,4 @@
+import logging
 from dotenv import load_dotenv
 load_dotenv()
 from src.app.setup.startup_event import startup_event
@@ -6,6 +7,8 @@ import time
 
 def main():
     startup_event()
+    logger = logging.getLogger(__name__)
+    logger.debug("!!!!! LOGGER LEVEL SET TO DEBUG !!!!!")
 
     # Keep the main thread alive
     try:
