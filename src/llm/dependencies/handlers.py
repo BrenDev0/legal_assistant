@@ -4,6 +4,7 @@ from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 from src.llm.events.handlers.incomming_message import IncommingMessageHandler
 from src.llm.dependencies.services import get_workflow_service
 
+
 logger = logging.getLogger(__name__)
 
 def get_incomming_message_handler() -> IncommingMessageHandler:
@@ -19,3 +20,4 @@ def get_incomming_message_handler() -> IncommingMessageHandler:
         logger.info(f"{instance_key} registered")
 
     return handler
+

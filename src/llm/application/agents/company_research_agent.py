@@ -1,14 +1,13 @@
 import logging
 from typing import Union
 from uuid import UUID
-from expertise_chats.broker import Producer, InteractionEvent
-from expertise_chats.schemas.ws import WsPayload
-from src.llm.application.services.prompt_service import PromptService
-from src.llm.domain.services.llm_service import LlmService
+from expertise_chats.broker import Producer
+from expertise_chats.llm import SearchForContext, StreamLlmOutput, LlmServiceAbstract, PromptService
+
+
 from src.llm.domain.state import State
 from src.llm.events.scehmas import IncommingMessageEvent
-from src.llm.application.use_cases.search_for_context import SearchForContext
-from src.llm.utils.publish_output import publish_llm_output
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +15,16 @@ class CompanyLegalResearcher:
     def __init__(
         self, 
         prompt_service: PromptService, 
-        llm_service: LlmService,
+        llm_service: LlmServiceAbstract,
         producer: Producer,
-        search_for_context: SearchForContext
+        search_for_context: SearchForContext,
+        stream_llm_output: StreamLlmOutput
     ):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
         self.__producer = producer
         self.__search_for_context = search_for_context
+        self.__stream_llm_output = stream_llm_output
 
     async def __get_prompt(
         self,  
@@ -75,66 +76,13 @@ class CompanyLegalResearcher:
             
             
             if not state["context_orchestrator_response"].general_law:
-                chunks = []
-                sentence = "" 
-                async for chunk in self.__llm_service.generate_stream(
+                response = await self.__stream_llm_output.execute(
                     prompt=prompt,
-                    temperature=0.5
-                ):
-                    chunks.append(chunk)
-                    if event.voice:
-                        sentence += chunk
-                        # Check for sentence-ending punctuation
-                        if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                            ws_payload = WsPayload(
-                                type="AUDIO",
-                                data=sentence.strip()
-                            )
-
-                            publish_llm_output(
-                                event=event,
-                                payload=ws_payload
-                            )
-
-                            sentence = ""
-                    else:
-                        ws_payload = WsPayload(
-                            type="TEXT",
-                            data=chunk
-                        )
-
-                        publish_llm_output(
-                            event=event,
-                            payload=ws_payload
-                        )
-
-                # After streaming all chunks, send any remaining text for voice
-                if event.voice and sentence.strip():
-                    ws_payload = WsPayload(
-                        type="AUDIO",
-                        data=sentence.strip()
-                    )
-
-                    publish_llm_output(
-                        event=event,
-                        payload=ws_payload
-                    )
-
-                    ws_payload.type = "TEXT"
-                    ws_payload.data = chunk
-
-                    publish_llm_output(
-                        event=event,
-                        payload=ws_payload
-                    )
-                
-                self.__producer.publish(
-                    routing_key="messages.outgoing.send",
-                    event_message={
-                        "llm_response": "".join(chunks)
-                    }
+                    event=event,
+                    temperature=0.0
                 )
-                return "".join(chunks)
+
+                return response
             
             response = await self.__llm_service.invoke(
                 prompt=prompt,

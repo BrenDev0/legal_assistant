@@ -1,31 +1,24 @@
 import logging
 from typing import List
-from expertise_chats.broker import Producer
-from expertise_chats.schemas.ws import WsPayload
-from src.llm.application.services.prompt_service import PromptService
-from src.llm.domain.services.llm_service import LlmService
 from src.llm.domain.state import State
 from src.llm.events.scehmas import IncommingMessageEvent
-from src.llm.utils.publish_output import publish_llm_output
-from src.llm.domain.entities import Message
+from expertise_chats.llm import MessageModel, StreamLlmOutput, PromptService
 
 logger = logging.getLogger(__name__)
 
 class ResearchAggregator: 
     def __init__(
         self, 
-        prompt_service: PromptService, 
-        llm_service: LlmService, 
-        producer: Producer
+        prompt_service: PromptService,
+        stream_llm_output: StreamLlmOutput
     ):
+        self.__stream_llm_output = stream_llm_output
         self.__prompt_service = prompt_service
-        self.__llm_service = llm_service
-        self.__producer = producer
 
     def __get_prompt(
         self, 
         state: State,
-        chat_history: List[Message]
+        chat_history: List[MessageModel]
     ):  
         context_parts = []
         
@@ -79,70 +72,14 @@ class ResearchAggregator:
                 state=state,
                 chat_history=event_data.chat_history
             )
-            
-            chunks = []
-            sentence = "" 
-            async for chunk in self.__llm_service.generate_stream(
+
+            response = await self.__stream_llm_output.execute(
                 prompt=prompt,
+                event=event,
                 temperature=0.5
-            ):
-                chunks.append(chunk)
-                if event.voice:
-                    sentence += chunk
-                    # Check for sentence-ending punctuation
-                    if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                        ws_payload = WsPayload(
-                            type="AUIDO",
-                            data=sentence.strip()
-                        )
-
-                        publish_llm_output(
-                            event=event,
-                            payload=ws_payload
-                        )
-
-                        sentence = ""
-                else:
-                    ws_payload = WsPayload(
-                        type="TEXT",
-                        data=chunk
-                    )
-
-                    publish_llm_output(
-                        event=event,
-                        payload=ws_payload
-                    )
-                        
-            # After streaming all chunks, send any remaining text for voice
-            if event.voice and sentence.strip():
-                ws_payload = WsPayload(
-                    type="AUIDO",
-                    data=sentence.strip()
-                )
-
-                publish_llm_output(
-                    event=event,
-                    payload=ws_payload
-                )
-
-                ws_payload.type = "TEXT"
-                ws_payload.data = chunk
-
-                event.event_data = ws_payload.model_dump()
-
-                publish_llm_output(
-                    event=event,
-                    payload=ws_payload
-                )
-
-            self.__producer.publish(
-                routing_key="messages.outgoing.send",
-                event_message={
-                    "llm_response": "".join(chunks)
-                }
             )
             
-            return "".join(chunks)
+            return response
         
         except Exception as e:
             raise

@@ -2,8 +2,7 @@ from typing import List
 import logging
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-
-from src.llm.domain.services.workflow_service import WorkflowService
+from expertise_chats.llm import WorkflowServiceAbsract
 from src.llm.domain.models import ContextOrchestratorOutput
 from src.llm.domain.state import State
 from src.llm.application.agents.aggregator_agent import ResearchAggregator
@@ -13,7 +12,7 @@ from src.llm.application.agents.fallback_agent import FallBackAgent
 from src.llm.application.agents.general_legal_agent import GeneralLegalResearcher
 logger = logging.getLogger(__name__)
 
-class LanggraphWorkflowService(WorkflowService):
+class LanggraphWorkflowService(WorkflowServiceAbsract):
     def __init__(
         self,
         research_aggregator_agent: ResearchAggregator,

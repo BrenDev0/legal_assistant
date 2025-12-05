@@ -2,38 +2,31 @@ import logging
 from expertise_chats.dependencies.container import Container
 from expertise_chats.exceptions.dependencies import DependencyNotRegistered
 
-from src.llm.domain.services.embedding_service import EmbeddingService
-from src.llm.domain.services.llm_service import LlmService
-from src.llm.domain.services.workflow_service import WorkflowService
-
-from src.llm.application.services.prompt_service import PromptService
-
-from src.llm.infrastructure.langchain.llm_service import LangchainLlmService
-from src.llm.infrastructure.openai.embedding_service import OpenAIEmbeddingService
+from expertise_chats.llm import EmbeddingServiceAbstract, EmbeddingService, LlmServiceAbstract, LlmService, PromptService, WorkflowServiceAbsract
 from src.llm.infrastructure.langgraph.workflow_service import LanggraphWorkflowService
 
 logger = logging.getLogger(__name__)
 
-def get_llm_service() -> LlmService:
+def get_llm_service() -> LlmServiceAbstract:
     try:
         instance_key = "llm_service"
         service = Container.resolve(instance_key)
 
     except DependencyNotRegistered:
-        service = LangchainLlmService()
+        service = LlmService()
         Container.register(instance_key, service)
         logger.info(f"{instance_key} registered")
 
     return service
 
 
-def get_ebedding_service() -> EmbeddingService:
+def get_ebedding_service() -> EmbeddingServiceAbstract:
     try:
         instance_key = "embedding_service"
         service = Container.resolve(instance_key)
 
     except DependencyNotRegistered:
-        service = OpenAIEmbeddingService()
+        service = EmbeddingService()
         Container.register(instance_key, service)
         logger.info(f"{instance_key} registered")
     
@@ -52,7 +45,7 @@ def get_prompt_service() -> PromptService:
     
     return service
 
-def get_workflow_service() -> WorkflowService:
+def get_workflow_service() -> WorkflowServiceAbsract:
     try:
         instance_key = "workflow_service"
         service = Container.resolve(instance_key)

@@ -1,23 +1,21 @@
 import logging
 from typing import List
+from expertise_chats.llm import PromptService, LlmServiceAbstract, MessageModel
 from src.llm.events.scehmas import IncommingMessageEvent
-from src.llm.application.services.prompt_service import PromptService
 from src.llm.domain.state import State
 from src.llm.domain.models import ContextOrchestratorOutput
-from src.llm.domain.services.llm_service import LlmService
-from src.llm.domain.entities import Message
 
 logger = logging.getLogger(__name__)
 
 class ContextOrchestrator:
-    def __init__(self, prompt_service: PromptService, llm_service: LlmService):
+    def __init__(self, prompt_service: PromptService, llm_service: LlmServiceAbstract):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
 
    
     def __get_prompt(
         self, 
-        chat_history: List[Message]
+        chat_history: List[MessageModel]
     ):
         system_message = """
         You are a legal context orchestrator agent. Analyze the user's query to determine what information is needed.

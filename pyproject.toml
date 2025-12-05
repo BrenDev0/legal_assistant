@@ -5,14 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dotenv>=0.9.9",
     "expertise-chats",
-    "langchain>=0.3.27",
-    "langchain-community>=0.3.27",
-    "langchain-openai>=0.3.29",
     "langgraph>=0.6.4",
-    "openai>=1.99.7",
     "pydantic>=2.11.7",
-    "qdrant-client>=1.16.1",
     "unstructured>=0.18.11",
 ]
 
