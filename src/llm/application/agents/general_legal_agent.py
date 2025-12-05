@@ -37,6 +37,7 @@ class GeneralLegalResearcher:
         - Include specific article numbers and legal references
         - Consider federal vs. state jurisdiction when relevant
         - Provide factual legal context, not legal advice
+        - Always respond in the users language
         - **Format your response using valid Markdown. Use headings, bullet points, numbers, indentations, and bold or italics for clarity.**
 
         Analyze the query and provide comprehensive Mexican legal context using the available legal documents.

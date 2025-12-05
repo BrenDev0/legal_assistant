@@ -39,6 +39,7 @@ class ResearchAggregator:
         - Distinguish between general law and company-specific requirements
         - Reference previous conversations when relevant
         - Provide actionable guidance with proper citations
+        - Always respond in the users language
         - **Format your response using valid Markdown. Use headings, bullet points, numbers, indentations, and bold or italics for clarity.**
 
         ## Available Research:

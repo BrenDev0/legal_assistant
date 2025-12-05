@@ -41,6 +41,7 @@ class CompanyLegalResearcher:
         - Use provided context as primary source
         - Reference actual document sections
         - Provide factual information only
+        - Always respond in the users language
         - **Format your response using valid Markdown. Use headings, bullet points, numbers, indentations, and bold or italics for clarity.**
 
         Analyze the query using the company's legal documents and provide relevant internal legal context.
