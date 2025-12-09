@@ -2,7 +2,6 @@ import os
 import logging
 
 from expertise_chats.llm import StreamLlmOutput, SearchForContext, LlmServiceAbstract, PromptService
-
 from src.llm.domain.state import State
 from src.llm.events.scehmas import IncommingMessageEvent
 
