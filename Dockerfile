@@ -1,4 +1,5 @@
 FROM python:3.12-slim AS builder
+RUN apt-get update && apt-get install -y git && apt-get clean
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 COPY uv.lock .
@@ -14,5 +15,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY src/ ./src/
 
-EXPOSE 8000
 CMD ["python", "-m", "src.app.main"]

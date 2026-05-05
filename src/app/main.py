@@ -1,13 +1,21 @@
-from  dotenv import load_dotenv
+import logging
+from dotenv import load_dotenv
 load_dotenv()
-import uvicorn
-from src.app.interface.fastapi.server import create_fastapi_app
+from src.app.setup.startup_event import startup_event
+import signal
+import time
 
-app = create_fastapi_app()
+def main():
+    startup_event()
+    logger = logging.getLogger(__name__)
+    logger.debug("!!!!! LOGGER LEVEL SET TO DEBUG !!!!!")
+
+    # Keep the main thread alive
+    try:
+        while True:
+            time.sleep(1)  # Sleep to prevent busy-waiting
+    except KeyboardInterrupt:
+        print("Shutting down gracefully...")
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "src.app.main:app",
-        host="0.0.0.0",
-        port=8000
-    )
+    main()

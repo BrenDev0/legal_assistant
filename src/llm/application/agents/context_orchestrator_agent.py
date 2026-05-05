@@ -1,17 +1,22 @@
-from src.llm.application.services.prompt_service import PromptService
+import logging
+from typing import List
+from expertise_chats.llm import PromptService, LlmServiceAbstract, MessageModel
+from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.domain.state import State
 from src.llm.domain.models import ContextOrchestratorOutput
-from src.llm.domain.services.llm_service import LlmService
-from src.shared.utils.decorators.error_hanlder import error_handler
+
+logger = logging.getLogger(__name__)
 
 class ContextOrchestrator:
-    __MODULE = "context_orchestrator.agent"
-    def __init__(self, prompt_service: PromptService, llm_service: LlmService):
+    def __init__(self, prompt_service: PromptService, llm_service: LlmServiceAbstract):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
 
-    @error_handler(module=__MODULE)
-    def __get_prompt(self, state: State):
+   
+    def __get_prompt(
+        self, 
+        chat_history: List[MessageModel]
+    ):
         system_message = """
         You are a legal context orchestrator agent. Analyze the user's query to determine what information is needed.
 
@@ -38,20 +43,28 @@ class ContextOrchestrator:
         """
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            chat_history=state["chat_history"],
-            input=state["input"]
+            chat_history=chat_history,
+            input=chat_history[0].text
         )
 
         return prompt
 
-    @error_handler(module=__MODULE)
-    async def interact(self, state: State) -> ContextOrchestratorOutput:   
-        prompt = self.__get_prompt(state)
+    async def interact(self, state: State) -> ContextOrchestratorOutput: 
+        try: 
+            event = state["event"]  
+            event_data = IncommingMessageEvent(**event.event_data)  
+            
+            prompt = self.__get_prompt(
+                chat_history=event_data.chat_history
+            )
 
-        response = await self.__llm_service.invoke_structured(
-            prompt=prompt,
-            response_model=ContextOrchestratorOutput,
-            temperature=0.0
-        )
+            response = await self.__llm_service.invoke_structured(
+                prompt=prompt,
+                response_model=ContextOrchestratorOutput,
+                temperature=0.0
+            )
 
-        return response
+            return response
+        except Exception as e:
+            logger.error(str(e))
+            raise

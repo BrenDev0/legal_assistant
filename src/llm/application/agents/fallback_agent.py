@@ -1,27 +1,24 @@
 import logging
-from src.llm.application.services.prompt_service import PromptService
-from src.llm.domain.services.llm_service import LlmService
-from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
+from expertise_chats.llm import PromptService, StreamLlmOutput
+from src.llm.events.scehmas import IncommingMessageEvent
 from src.llm.domain.state import State
-from src.shared.utils.decorators.error_hanlder import error_handler
+
+
 logger = logging.getLogger(__name__)
 
 class FallBackAgent:
-    __MODULE = "fallback.agent"
     def __init__(
         self, 
         prompt_service: PromptService, 
-        llm_service: LlmService,
-        streaming: WsStreaming
+        stream_llm_output: StreamLlmOutput
     ):
+        self.__stream_llm_output = stream_llm_output
         self.__prompt_service = prompt_service
-        self.__llm_service = llm_service
-        self.__streaming = streaming
 
-    @error_handler(module=__MODULE)
+
     def __get_prompt(
         self,
-        state: State
+        input: str
     ):
         system_message = """
         You are a legal assistant fallback agent.
@@ -34,6 +31,7 @@ class FallBackAgent:
         - General legal principles, statutes, and regulations
         - Company-specific legal documents and policies
         - Legal compliance and related matters
+        - Always respond in the users language
         - **Format your response using valid Markdown. Use headings, bullet points, numbers, indentations, and bold or italics for clarity.**
 
         If the user would like help with a legal question, encourage them to ask about those topics and provide more specific details if possible.
@@ -41,63 +39,31 @@ class FallBackAgent:
 
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            input=state["input"]
+            input=input
         )
 
         return prompt
 
-    @error_handler(module=__MODULE)
+
     async def interact(
         self,
         state: State
     ): 
-        prompt = self.__get_prompt(state=state)
-
-        chunks = []
-        sentence = ""
-        async for chunk in self.__llm_service.generate_stream(
-            prompt=prompt,
-            temperature=0.5
-        ):
-            chunks.append(chunk)
+        try:
+            event = state["event"]        
+            event_data = IncommingMessageEvent(**event.event_data)
+            prompt = self.__get_prompt(input=event_data.chat_history[0].text)
             
-            if state.get("voice"):
-                sentence += chunk
-                # Check for sentence-ending punctuation
-                if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=sentence.strip(),
-                        voice=True
-                    )
-                    sentence = ""
-            else:
-                try:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=chunk,
-                        voice=False
-                    )
-                except Exception as e:
-                    logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
 
-        # After streaming all chunks, send any remaining text for voice
-        if state.get("voice") and sentence.strip():
-            try:
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text=sentence.strip(),
-                    voice=True
-                )
-                await self.__streaming.execute(
-                    ws_connection_id=state["chat_id"],
-                    text="END STREAM",
-                    voice=True,
-                    type="END"
-                )
-            except Exception as e:
-                logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
-            
-        return "".join(chunks)
+            response = await self.__stream_llm_output.execute(
+                prompt=prompt,
+                event=event.model_copy(),
+                temperature=0.5
+            )
+
+            return response
         
+        except Exception as e:
+            logger.error(str(e))
+            raise
         

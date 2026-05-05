@@ -1,12 +1,8 @@
 from typing import List
-import os
 import logging
-import httpx
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-
-from src.shared.utils.http.get_hmac_header import generate_hmac_headers
-from src.llm.domain.services.workflow_service import WorkflowService
+from expertise_chats.llm import WorkflowServiceAbsract
 from src.llm.domain.models import ContextOrchestratorOutput
 from src.llm.domain.state import State
 from src.llm.application.agents.aggregator_agent import ResearchAggregator
@@ -16,7 +12,7 @@ from src.llm.application.agents.fallback_agent import FallBackAgent
 from src.llm.application.agents.general_legal_agent import GeneralLegalResearcher
 logger = logging.getLogger(__name__)
 
-class LanggraphWorkflowService(WorkflowService):
+class LanggraphWorkflowService(WorkflowServiceAbsract):
     def __init__(
         self,
         research_aggregator_agent: ResearchAggregator,
@@ -79,26 +75,7 @@ class LanggraphWorkflowService(WorkflowService):
             response = await self.__fallback_agent.interact(state=state)
             return {"final_response": response}
         
-        async def hanlde_response_node(state: State):
-            hmac_headers = generate_hmac_headers(os.getenv("HMAC_SECRET"))
-            main_server = os.getenv("MAIN_SERVER_ENDPOINT")
-            req_body = {
-                "sender": os.getenv("AGENT_ID"),
-                "message_type": "ai",
-                "text": state["final_response"]
-            }
-            
-            async with httpx.AsyncClient() as client:
-                res = await client.post(
-                    f"{main_server}/messages/internal/{state['chat_id']}",
-                    headers=hmac_headers,
-                    json=req_body
-                )
-
-                if res.status_code != 201:
-                    logger.warning("POST response:", res)
-
-                return state
+        
                 
 
         graph.add_node("context_orchestrator", context_orchestrator_node)
@@ -106,7 +83,6 @@ class LanggraphWorkflowService(WorkflowService):
         graph.add_node("company_legal_research", company_legal_research_node)
         graph.add_node("aggregator", aggregator_node)
         graph.add_node("fallback", fallback_node)
-        graph.add_node("handle_response", hanlde_response_node)
         
         graph.add_edge(START, "context_orchestrator")
         
@@ -123,16 +99,18 @@ class LanggraphWorkflowService(WorkflowService):
 
         graph.add_edge("general_legal_research", "aggregator")
         graph.add_edge("company_legal_research", "aggregator")
-        graph.add_edge("aggregator", "handle_response")
-        graph.add_edge("fallback", "handle_response")
-        graph.add_edge("handle_response", END)
+        graph.add_edge("fallback", END)
+        graph.add_edge("aggregator", END)
 
 
         return graph.compile()
     
     async def invoke_workflow(self, state):
         graph: CompiledStateGraph = self.create_workflow()
-
-        final_state = await graph.ainvoke(state)
-
-        return final_state
+        try:
+            final_state = await graph.ainvoke(state)
+    
+            return final_state
+        
+        except Exception as e:
+            raise

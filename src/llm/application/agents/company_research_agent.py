@@ -1,27 +1,33 @@
 import logging
-from src.llm.application.services.prompt_service import PromptService
-from src.llm.domain.services.llm_service import LlmService
+from typing import Union
+from uuid import UUID
+from expertise_chats.llm import SearchForContext, StreamLlmOutput, LlmServiceAbstract, PromptService
+
+
 from src.llm.domain.state import State
-from src.web_sockets.application.use_cases.ws_streaming import WsStreaming
-from src.llm.application.use_cases.search_for_context import SearchForContext
-from src.shared.utils.decorators.error_hanlder import error_handler
+from src.llm.events.scehmas import IncommingMessageEvent
+
+
 logger = logging.getLogger(__name__)
 
 class CompanyLegalResearcher:
-    __MODULE = "company_research.agent"
     def __init__(
         self, 
         prompt_service: PromptService, 
-        llm_service: LlmService,
-        streaming: WsStreaming,
-        search_for_context: SearchForContext
+        llm_service: LlmServiceAbstract,
+        search_for_context: SearchForContext,
+        stream_llm_output: StreamLlmOutput
     ):
         self.__prompt_service = prompt_service
         self.__llm_service = llm_service
-        self.__streaming = streaming
         self.__search_for_context = search_for_context
+        self.__stream_llm_output = stream_llm_output
 
-    async def __get_prompt(self, state: State):
+    async def __get_prompt(
+        self,  
+        input: str,
+        company_id: Union[str, UUID]
+    ):
         system_message = """
         You are a Company Legal Document Specialist. Analyze the user's query using the provided company documents and policies.
 
@@ -35,80 +41,54 @@ class CompanyLegalResearcher:
         - Use provided context as primary source
         - Reference actual document sections
         - Provide factual information only
+        - Always respond in the users language
         - **Format your response using valid Markdown. Use headings, bullet points, numbers, indentations, and bold or italics for clarity.**
 
         Analyze the query using the company's legal documents and provide relevant internal legal context.
 
         If there is no context found you will state that you've found no company documnets to analyze
         """
-        collection_name = f"{state['company_id']}_company_docs"
+        collection_name = f"{company_id}_company_docs"
 
         context = await self.__search_for_context.execute(
-            input=state["input"],
+            input=input,
             namespace=collection_name
         )
 
         prompt = self.__prompt_service.build_prompt(
             system_message=system_message,
-            input=state["input"],
+            input=input,
             context=context
         )
 
         return prompt
 
-    @error_handler(module=__MODULE)
     async def interact(self, state: State):
-        prompt = await self.__get_prompt(state)
-        
-        if not state["context_orchestrator_response"].general_law:
-            chunks = []
-            sentence = "" 
-            async for chunk in self.__llm_service.generate_stream(
-                prompt=prompt,
-                temperature=0.5
-            ):
-                chunks.append(chunk)
-                if state.get("voice"):
-                    sentence += chunk
-                    # Check for sentence-ending punctuation
-                    if any(p in chunk for p in [".", "?", "!"]) and len(sentence) > 10:
-                        await self.__streaming.execute(
-                            ws_connection_id=state["chat_id"],
-                            text=sentence.strip(),
-                            voice=True
-                        )
-                        sentence = ""
-                else:
-                    try:
-                        await self.__streaming.execute(
-                            ws_connection_id=state["chat_id"],
-                            text=chunk,
-                            voice=False
-                        )
-                    except Exception as e:
-                        logger.error(f"error sending chunk: {chunk} :::: {str(e)}")
-            # After streaming all chunks, send any remaining text for voice
-            if state.get("voice") and sentence.strip():
-                try:
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text=sentence.strip(),
-                        voice=True
-                    )
-                
-                    await self.__streaming.execute(
-                        ws_connection_id=state["chat_id"],
-                        text="END STREAM",
-                        voice=True,
-                        type="END"
-                    )
-                except Exception as e:
-                    logger.error(f"error sending chunk: {sentence.strip()} :::: {str(e)}")
-            return "".join(chunks)
-        
-        response = await self.__llm_service.invoke(
-            prompt=prompt,
-            temperature=0.0
-        )
+        try:
+            event = state["event"]
+            event_data = IncommingMessageEvent(**event.event_data)
+            prompt = await self.__get_prompt(
+                company_id=event.company_id,
+                input=event_data.chat_history[0].text
+            )
+            
+            
+            if not state["context_orchestrator_response"].general_law:
+                response = await self.__stream_llm_output.execute(
+                    prompt=prompt,
+                    event=event.model_copy(),
+                    temperature=0.0
+                )
 
-        return response
+                return response
+            
+            response = await self.__llm_service.invoke(
+                prompt=prompt,
+                temperature=0.0
+            )
+
+            return response
+        
+        except Exception as e:
+            logger.error(str(e))
+            raise
